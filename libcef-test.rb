@@ -34,6 +34,7 @@ module MyLibrary
   attach_function(:gtk_init, [:int, :pointer], :void);
   attach_function(:gtk_container_add, [:pointer, :pointer], :void);
   attach_function(:gtk_widget_show, [:pointer], :void);
+  attach_function(:gtk_widget_show_all, [:pointer], :void);
   attach_function(:gtk_main, [], :void);
   attach_function(:gtk_vbox_new, [:bool, :int], :pointer);
   attach_function(:cef_run_message_loop, [], :void);
@@ -82,7 +83,7 @@ module MyLibrary
   end
   class CefSettings < FFI::Struct
 	layout :size, :size_t,
-		   :single_process, :int,
+		   :single_process, :bool,
 		  :browser_subprocess_path, CefString,
 		  :multi_threaded_message_loop, :bool,
 		  :command_line_args_disabled, :bool,
@@ -339,9 +340,27 @@ class RubyApp
         resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
         url = "http://google.com";
 
+
+        settings[:single_process] = true
+        settings[:browser_subprocess_path] = MyLibrary.cefString(".")
+        settings[:multi_threaded_message_loop] = true
+        settings[:command_line_args_disabled] = false
+        settings[:cache_path] = MyLibrary.cefString(".")
+        settings[:user_agent] = MyLibrary.cefString("Chrome")
+        settings[:product_version] = MyLibrary.cefString("12212")
+        settings[:locale] = MyLibrary.cefString("en-US")
+        settings[:log_file] = MyLibrary.cefString("./chromium.log")
+        settings[:log_severity] = :LOGSEVERITY_DEFAULT,
+        settings[:release_dcheck_enabled] = false
+        settings[:javascript_flags] = MyLibrary.cefString("")
+        settings[:auto_detect_proxy_settings_enabled] = true
+        settings[:pack_loading_disabled] = false
+        settings[:remote_debugging_port] = 12121
+        settings[:uncaught_exception_stack_size] = 200
+        settings[:context_safety_implementation] = 0
         settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
         settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
-        # settings[:command_line_args_disabled] = true;
+
         app = MyLibrary::CefApp.new;
         result = MyLibrary.cef_initialize(mainArgs, settings, nil);
         puts("Result: " + result.to_s);
