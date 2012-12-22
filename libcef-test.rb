@@ -19,11 +19,23 @@ end # module LibC
 
 module MyLibrary
   extend FFI::Library
+  enum :GtkWindowType, [
+    :GTK_WINDOW_TOPLEVEL,
+    :GTK_WINDOW_POPUP
+  ];
   ffi_lib("/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so");
   attach_function(:cef_do_message_loop_work, [], :void);
   attach_function(:cef_browser_host_create_browser_sync, [:pointer, :pointer, :pointer, :pointer], :pointer);
+  attach_function(:cef_browser_host_create_browser, [:pointer, :pointer, :pointer, :pointer], :pointer);
   attach_function(:cef_initialize, [:pointer, :pointer, :pointer], :int);
   attach_function(:cef_string_ascii_to_utf16, [:string, :size_t, :pointer], :int);
+  attach_function(:gtk_window_new, [:GtkWindowType], :pointer);
+  attach_function(:gtk_drawing_area_new, [], :pointer);
+  attach_function(:gtk_init, [:int, :pointer], :void);
+  attach_function(:gtk_container_add, [:pointer, :pointer], :void);
+  attach_function(:gtk_widget_show, [:pointer], :void);
+  attach_function(:gtk_main, [], :void);
+
   puts("That wasn't so bad!");
   enum :LogSeverity, [
   :LOGSEVERITY_DEFAULT,
@@ -88,6 +100,55 @@ module MyLibrary
 		  :context_safety_implementation, :int
   end
 
+  class BrowserSettings < FFI::Struct
+    layout :size, :size_t,
+          :standard_font_family, :pointer,
+          :fixed_font_family, :pointer,
+          :serif_font_family, :pointer,
+          :sans_serif_font_family, :pointer,
+          :cursive_font_family, :pointer,
+          :fantasy_font_family, :pointer,
+          :default_font_size, :int,
+          :default_fixed_font_size, :int,
+          :minimum_font_size, :int,
+          :minimum_logical_font_size, :int,
+          :remote_fonts_disabled, :bool,
+          :default_encoding, :pointer,
+          :encoding_detector_enabled, :bool,
+          :javascript_disabled, :bool,
+          :javascript_open_windows_disallowed, :bool,
+          :javascript_close_windows_disallowed, :bool,
+          :javascript_access_clipboard_disallowed, :bool,
+          :dom_paste_disabled, :bool,
+          :caret_browsing_enabled, :bool,
+          :java_disabled, :bool,
+          :plugins_disabled, :bool,
+          :universal_access_from_file_urls_allowed, :bool,
+          :file_access_from_file_urls_allowed, :bool,
+          :web_security_disabled, :bool,
+          :xss_auditor_enabled, :bool,
+          :image_load_disabled, :bool,
+          :shrink_standalone_images_to_fit, :bool,
+          :site_specific_quirks_disabled, :bool,
+          :text_area_resize_disabled, :bool,
+          :page_cache_disabled, :bool,
+          :tab_to_links_disabled, :bool,
+          :hyperlink_auditing_disabled, :bool,
+          :user_style_sheet_enabled, :bool,
+          :user_style_sheet_location, :pointer,
+          :author_and_user_styles_disabled, :bool,
+          :local_storage_disabled, :bool,
+          :databases_disabled, :bool,
+          :application_cache_disabled, :bool,
+          :webgl_disabled, :bool,
+          :accelerated_compositing_disabled, :bool,
+          :accelerated_layers_disabled, :bool,
+          :accelerated_video_disabled, :bool,
+          :accelerated_2d_canvas_disabled, :bool,
+          :accelerated_plugins_disabled, :bool,
+          :developer_tools_disabled, :bool
+  end
+
   class CefApp < FFI::Struct
       layout :base, CefBase,
       :on_before_command_line_processing, :pointer,
@@ -96,23 +157,60 @@ module MyLibrary
       :_cef_browser_process_handler_t, :pointer,
       :_cef_render_process_handler_t, :pointer
   end
+
+  class CefClient < FFI::Struct
+    layout :base, CefBase,
+          :_cef_context_menu_handler_t, :pointer,
+          :_cef_dialog_handler_t, :pointer,
+          :_cef_display_handler_t, :pointer,
+          :_cef_download_handler_t, :pointer,
+          :_cef_focus_handler_t, :pointer,
+          :_cef_geolocation_handler_t, :pointer,
+          :_cef_jsdialog_handler_t, :pointer,
+          :_cef_keyboard_handler_t, :pointer,
+          :_cef_life_span_handler_t, :pointer,
+          :_cef_load_handler_t, :pointer,
+          :_cef_render_handler_t, :pointer,
+          :_cef_request_handler_t, :pointer,
+          :on_process_message_received, :pointer
+  end
 end
 
-mainArgs = MyLibrary::MainArgs.new;
-mainArgs[:argc] = 0;
-mainArgs[:argv] = LibC.malloc(0);
-settings = MyLibrary::CefSettings.new;
-# settings[:pack_loading_disabled] = true;
+require 'gtk2'
 
-locales_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/locales";
-resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
-url = "http://google.com";
+class RubyApp
 
-settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
-settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
-settings[:command_line_args_disabled] = true;
-app = MyLibrary::CefApp.new;
-result = MyLibrary.cef_initialize(mainArgs, settings, nil);
-puts("Result: " + result.to_s);
-browser = MyLibrary.cef_browser_host_create_browser_sync(MyLibrary::WindowInfo.new, nil, MyLibrary.cefString(url), nil);
-# MyLibrary.cef_do_message_loop_work();
+    def initialize
+        MyLibrary.gtk_init(0, nil)
+        top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
+        area = MyLibrary.gtk_drawing_area_new();
+        MyLibrary.gtk_container_add(top, area);
+        mainArgs = MyLibrary::MainArgs.new;
+        mainArgs[:argc] = 0;
+        mainArgs[:argv] = LibC.malloc(0);
+        settings = MyLibrary::CefSettings.new;
+        client = MyLibrary::CefClient.new;
+        browser_settings = MyLibrary::BrowserSettings.new;
+        window_info = MyLibrary::WindowInfo.new;
+
+        window_info[:widget] = area;
+        window_info[:parent_widget] = top;
+
+        locales_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/locales";
+        resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
+        url = "http://google.com";
+
+        settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
+        settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
+        # settings[:command_line_args_disabled] = true;
+        app = MyLibrary::CefApp.new;
+        result = MyLibrary.cef_initialize(mainArgs, settings, nil);
+        puts("Result: " + result.to_s);
+        worked = MyLibrary.cef_browser_host_create_browser(MyLibrary::WindowInfo.new, client, MyLibrary.cefString(url), browser_settings);
+        MyLibrary.gtk_widget_show(area);
+        MyLibrary.gtk_widget_show(top);
+        MyLibrary.gtk_main();
+    end
+end
+
+window = RubyApp.new
