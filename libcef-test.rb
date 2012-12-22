@@ -102,18 +102,18 @@ module MyLibrary
 
   class BrowserSettings < FFI::Struct
     layout :size, :size_t,
-          :standard_font_family, :pointer,
-          :fixed_font_family, :pointer,
-          :serif_font_family, :pointer,
-          :sans_serif_font_family, :pointer,
-          :cursive_font_family, :pointer,
-          :fantasy_font_family, :pointer,
+          :standard_font_family, CefString,
+          :fixed_font_family, CefString,
+          :serif_font_family, CefString,
+          :sans_serif_font_family, CefString,
+          :cursive_font_family, CefString,
+          :fantasy_font_family, CefString,
           :default_font_size, :int,
           :default_fixed_font_size, :int,
           :minimum_font_size, :int,
           :minimum_logical_font_size, :int,
           :remote_fonts_disabled, :bool,
-          :default_encoding, :pointer,
+          :default_encoding, CefString,
           :encoding_detector_enabled, :bool,
           :javascript_disabled, :bool,
           :javascript_open_windows_disallowed, :bool,
@@ -135,7 +135,7 @@ module MyLibrary
           :tab_to_links_disabled, :bool,
           :hyperlink_auditing_disabled, :bool,
           :user_style_sheet_enabled, :bool,
-          :user_style_sheet_location, :pointer,
+          :user_style_sheet_location, CefString,
           :author_and_user_styles_disabled, :bool,
           :local_storage_disabled, :bool,
           :databases_disabled, :bool,
@@ -350,7 +350,12 @@ class RubyApp
 
     def browserSettings
       browser_settings = MyLibrary::BrowserSettings.new;
+      # x = MyLibrary.cefString("Arial")
+      # puts x[:str]
+      # browser_settings[:size] = 5000
       browser_settings[:standard_font_family] = MyLibrary.cefString("Arial")
+      # blah = MyLibrary::CefString.new(browser_settings[:standard_font_family])
+      # puts(blah[:length]);
       browser_settings[:fixed_font_family] = MyLibrary.cefString("Arial")
       browser_settings[:sans_serif_font_family] = MyLibrary.cefString("Arial")
       browser_settings[:serif_font_family] = MyLibrary.cefString("Arial")
