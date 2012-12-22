@@ -326,7 +326,7 @@ class RubyApp
           return CefLifeSpanHandler.new
         end
 
-        browser_settings = MyLibrary::BrowserSettings.new;
+        browser_settings = browserSettings();
         window_info = MyLibrary::WindowInfo.new;
 
         window_info[:widget] = area;
@@ -338,7 +338,7 @@ class RubyApp
 
         settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
         settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
-        # settings[:command_line_args_disabled] = true;
+        settings[:command_line_args_disabled] = true;
         app = MyLibrary::CefApp.new;
         result = MyLibrary.cef_initialize(mainArgs, settings, nil);
         puts("Result: " + result.to_s);
@@ -347,6 +347,56 @@ class RubyApp
         MyLibrary.gtk_widget_show(top);
         MyLibrary.gtk_main();
     end
+
+    def browserSettings
+      browser_settings = MyLibrary::BrowserSettings.new;
+      browser_settings[:standard_font_family] = MyLibrary.cefString("Arial")
+      browser_settings[:fixed_font_family] = MyLibrary.cefString("Arial")
+      browser_settings[:sans_serif_font_family] = MyLibrary.cefString("Arial")
+      browser_settings[:serif_font_family] = MyLibrary.cefString("Arial")
+      browser_settings[:cursive_font_family] = MyLibrary.cefString("Arial")
+      browser_settings[:fantasy_font_family] = MyLibrary.cefString("Arial")
+      browser_settings[:default_font_size] = 20
+      browser_settings[:minimum_font_size] = 20
+      browser_settings[:default_fixed_font_size] = 20
+      browser_settings[:minimum_logical_font_size] = 20
+      browser_settings[:default_encoding] = MyLibrary.cefString("UTF-16")
+      browser_settings[:encoding_detector_enabled] = true
+      browser_settings[:javascript_disabled] = false
+      browser_settings[:javascript_open_windows_disallowed] = false
+      browser_settings[:javascript_close_windows_disallowed] = false
+      browser_settings[:javascript_access_clipboard_disallowed] = false
+      browser_settings[:dom_paste_disabled] = false
+      browser_settings[:caret_browsing_enabled] = false
+      browser_settings[:java_disabled] = false
+      browser_settings[:plugins_disabled] = true
+      browser_settings[:universal_access_from_file_urls_allowed] = true
+      browser_settings[:file_access_from_file_urls_allowed] = false
+      browser_settings[:xss_auditor_enabled] = false
+      browser_settings[:image_load_disabled] = false
+      browser_settings[:shrink_standalone_images_to_fit] = true
+      browser_settings[:site_specific_quirks_disabled] = true
+      browser_settings[:text_area_resize_disabled] = true
+      browser_settings[:page_cache_disabled] = true
+      browser_settings[:tab_to_links_disabled] = false
+      browser_settings[:hyperlink_auditing_disabled] = true
+      browser_settings[:user_style_sheet_enabled] = false
+      browser_settings[:user_style_sheet_location] = MyLibrary.cefString(".")
+      browser_settings[:author_and_user_styles_disabled] = true
+      browser_settings[:local_storage_disabled] = true
+      browser_settings[:databases_disabled] = true
+      browser_settings[:application_cache_disabled] = true
+      browser_settings[:webgl_disabled] = false
+      browser_settings[:accelerated_compositing_disabled] = false
+      browser_settings[:accelerated_layers_disabled] = false
+      browser_settings[:accelerated_video_disabled] = false
+      browser_settings[:accelerated_2d_canvas_disabled] = false
+      browser_settings[:accelerated_plugins_disabled] = true
+      browser_settings[:developer_tools_disabled] = true
+
+      return browser_settings;
+    end
+
 end
 
 window = RubyApp.new
