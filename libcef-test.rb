@@ -41,7 +41,7 @@ module MyLibrary
   attach_function(:cef_shutdown, [], :void);
 
   puts("That wasn't so bad!");
-  enum :LogSeverity, [
+  LogSeverity = enum :LogSeverity, [
   :LOGSEVERITY_DEFAULT,
   :LOGSEVERITY_VERBOSE,
   :LOGSEVERITY_INFO,
@@ -343,14 +343,14 @@ class RubyApp
 
         settings[:single_process] = true
         settings[:browser_subprocess_path] = MyLibrary.cefString(".")
-        settings[:multi_threaded_message_loop] = true
+        settings[:multi_threaded_message_loop] = false
         settings[:command_line_args_disabled] = false
         settings[:cache_path] = MyLibrary.cefString(".")
         settings[:user_agent] = MyLibrary.cefString("Chrome")
         settings[:product_version] = MyLibrary.cefString("12212")
         settings[:locale] = MyLibrary.cefString("en-US")
         settings[:log_file] = MyLibrary.cefString("./chromium.log")
-        settings[:log_severity] = :LOGSEVERITY_DEFAULT,
+        # settings[:log_severity] = MyLibrary::LogSeverity[:LOGSEVERITY_DEFAULT],
         settings[:release_dcheck_enabled] = false
         settings[:javascript_flags] = MyLibrary.cefString("")
         settings[:auto_detect_proxy_settings_enabled] = true
