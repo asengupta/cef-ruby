@@ -35,6 +35,9 @@ module MyLibrary
   attach_function(:gtk_container_add, [:pointer, :pointer], :void);
   attach_function(:gtk_widget_show, [:pointer], :void);
   attach_function(:gtk_main, [], :void);
+  attach_function(:gtk_vbox_new, [:bool, :int], :pointer);
+  attach_function(:cef_run_message_loop, [], :void);
+  attach_function(:cef_shutdown, [], :void);
 
   puts("That wasn't so bad!");
   enum :LogSeverity, [
@@ -281,8 +284,8 @@ class RubyApp
     def initialize
         MyLibrary.gtk_init(0, nil)
         top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
-        area = MyLibrary.gtk_drawing_area_new();
-        MyLibrary.gtk_container_add(top, area);
+        # area = MyLibrary.gtk_drawing_area_new();
+        # MyLibrary.gtk_container_add(top, area);
         mainArgs = MyLibrary::MainArgs.new;
         mainArgs[:argc] = 0;
         mainArgs[:argv] = LibC.malloc(0);
@@ -328,9 +331,9 @@ class RubyApp
 
         browser_settings = browserSettings();
         window_info = MyLibrary::WindowInfo.new;
-
-        window_info[:widget] = area;
-        window_info[:parent_widget] = top;
+        vbox = MyLibrary.gtk_vbox_new(false, 0);
+        # window_info[:parent_widget] = top;
+        window_info[:parent_widget] = vbox;
 
         locales_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/locales";
         resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
@@ -338,14 +341,17 @@ class RubyApp
 
         settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
         settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
-        settings[:command_line_args_disabled] = true;
+        # settings[:command_line_args_disabled] = true;
         app = MyLibrary::CefApp.new;
         result = MyLibrary.cef_initialize(mainArgs, settings, nil);
         puts("Result: " + result.to_s);
-        worked = MyLibrary.cef_browser_host_create_browser(MyLibrary::WindowInfo.new, client, MyLibrary.cefString(url), browser_settings);
-        MyLibrary.gtk_widget_show(area);
+        worked = MyLibrary.cef_browser_host_create_browser_sync(window_info, client, MyLibrary.cefString(url), browser_settings);
+        puts(worked);
+        MyLibrary.gtk_container_add(top, vbox);
         MyLibrary.gtk_widget_show(top);
         MyLibrary.gtk_main();
+        MyLibrary.cef_run_message_loop();
+        MyLibrary.cef_shutdown();
     end
 
     def browserSettings
