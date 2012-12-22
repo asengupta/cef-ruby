@@ -158,19 +158,19 @@ module MyLibrary
       :_cef_render_process_handler_t, :pointer
   end
 
-  class CefContextMenuHandler
+  class CefContextMenuHandler < FFI::Struct
     layout :base, CefBase,
           :on_before_context_menu, :pointer,
           :on_context_menu_command, :pointer,
           :on_context_menu_dismissed, :pointer
   end
 
-  class CefDialogHandler
+  class CefDialogHandler < FFI::Struct
     layout :base, CefBase,
           :on_file_dialog, :pointer
   end
 
-  class CefDisplayHandler
+  class CefDisplayHandler < FFI::Struct
     layout :base, CefBase,
           :on_loading_state_change, :pointer,
           :on_address_change, :pointer,
@@ -180,39 +180,39 @@ module MyLibrary
           :on_console_message, :pointer
   end
 
-  class CefDownloadHandler
+  class CefDownloadHandler < FFI::Struct
     layout :base, CefBase,
           :on_before_download, :pointer,
           :on_download_updated, :pointer
   end
 
-  class CefFocusHandler
+  class CefFocusHandler < FFI::Struct
     layout :base, CefBase,
           :on_take_focus, :pointer,
           :on_set_focus, :pointer,
           :on_got_focus, :pointer
   end
 
-  class CefGeolocationHandler
+  class CefGeolocationHandler < FFI::Struct
     layout :base, CefBase,
           :on_request_geolocation_permission, :pointer,
           :on_cancel_geolocation_permission, :pointer
   end
 
-  class CefJavascriptDialogHandler
+  class CefJavascriptDialogHandler < FFI::Struct
     layout :base, CefBase,
           :on_jsdialog, :pointer,
           :on_before_unload_dialog, :pointer,
           :on_reset_dialog_state, :pointer
   end
 
-  class CefKeyboardHandler
+  class CefKeyboardHandler < FFI::Struct
     layout :base, CefBase,
           :on_pre_key_event, :pointer,
           :on_key_event, :pointer
   end
 
-  class CefLifeSpanHandler
+  class CefLifeSpanHandler < FFI::Struct
     layout :base, CefBase,
           :on_before_popup, :pointer,
           :on_after_created, :pointer,
@@ -221,7 +221,7 @@ module MyLibrary
           :on_before_close, :pointer
   end
 
-  class CefLoadHandler
+  class CefLoadHandler < FFI::Struct
     layout :base, CefBase,
           :on_load_start, :pointer,
           :on_load_end, :pointer,
@@ -230,7 +230,7 @@ module MyLibrary
           :on_plugin_crashed, :pointer
   end
 
-  class CefRenderHandler
+  class CefRenderHandler < FFI::Struct
     layout :base, CefBase,
           :get_root_screen_rect, :pointer,
           :get_view_rect, :pointer,
@@ -241,7 +241,7 @@ module MyLibrary
           :on_cursor_change, :pointer
   end
 
-  class CefRequestHandler
+  class CefRequestHandler < FFI::Struct
     layout :base, CefBase,
           :on_before_resource_load, :pointer,
           :get_resource_handler, :pointer,
@@ -288,7 +288,6 @@ class RubyApp
         mainArgs[:argv] = LibC.malloc(0);
         settings = MyLibrary::CefSettings.new;
         client = MyLibrary::CefClient.new;
-        client[:_cef_context_menu_handler_t] = FFI::Function()
         browser_settings = MyLibrary::BrowserSettings.new;
         window_info = MyLibrary::WindowInfo.new;
 
