@@ -258,18 +258,18 @@ module MyLibrary
 
   class CefClient
     layout :base, CefBase,
-          :_cef_context_menu_handler_t, CefContextMenuHandler,
-          :_cef_dialog_handler_t, CefDialogHandler,
-          :_cef_display_handler_t, CefDisplayHandler,
-          :_cef_download_handler_t, CefDownloadHandler,
-          :_cef_focus_handler_t, CefFocusHandler,
-          :_cef_geolocation_handler_t, CefGeolocationHandler,
-          :_cef_jsdialog_handler_t, CefJavascriptDialogHandler,
-          :_cef_keyboard_handler_t, CefKeyboardHandler,
-          :_cef_life_span_handler_t, CefLifeSpanHandler,
-          :_cef_load_handler_t, CefLoadHandler,
-          :_cef_render_handler_t, CefRequestHandler,
-          :_cef_request_handler_t, CefRequestHandler,
+          :_cef_context_menu_handler_t, :pointer,
+          :_cef_dialog_handler_t, :pointer,
+          :_cef_display_handler_t, :pointer,
+          :_cef_download_handler_t, :pointer,
+          :_cef_focus_handler_t, :pointer,
+          :_cef_geolocation_handler_t, :pointer,
+          :_cef_jsdialog_handler_t, :pointer,
+          :_cef_keyboard_handler_t, :pointer,
+          :_cef_life_span_handler_t, :pointer,
+          :_cef_load_handler_t, :pointer,
+          :_cef_render_handler_t, :pointer,
+          :_cef_request_handler_t, :pointer,
           :on_process_message_received, :pointer
   end
 end
@@ -288,6 +288,44 @@ class RubyApp
         mainArgs[:argv] = LibC.malloc(0);
         settings = MyLibrary::CefSettings.new;
         client = MyLibrary::CefClient.new;
+
+        client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefKeyboardHandler.new
+        end
+        client[:_cef_dialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefDialogHandler.new
+        end
+        client[:_cef_context_menu_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefContextMenuHandler.new
+        end
+        client[:_cef_request_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefRequestHandler.new
+        end
+        client[:_cef_render_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefRenderHandler.new
+        end
+        client[:_cef_load_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefLoadHandler.new
+        end
+        client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefKeyboardHandler.new
+        end
+        client[:_cef_jsdialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefJavascriptDialogHandler.new
+        end
+        client[:_cef_geolocation_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefGeolocationHandler.new
+        end
+        client[:_cef_focus_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefFocusHandler.new
+        end
+        client[:_cef_download_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefDownloadHandler.new
+        end
+        client[:_cef_life_span_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+          return CefLifeSpanHandler.new
+        end
+
         browser_settings = MyLibrary::BrowserSettings.new;
         window_info = MyLibrary::WindowInfo.new;
 
