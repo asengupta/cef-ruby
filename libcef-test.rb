@@ -180,10 +180,77 @@ module MyLibrary
           :on_console_message, :pointer
   end
 
-  class CefDisplayHandler
+  class CefDownloadHandler
     layout :base, CefBase,
           :on_before_download, :pointer,
           :on_download_updated, :pointer
+  end
+
+  class CefFocusHandler
+    layout :base, CefBase,
+          :on_take_focus, :pointer,
+          :on_set_focus, :pointer,
+          :on_got_focus, :pointer
+  end
+
+  class CefGeolocationHandler
+    layout :base, CefBase,
+          :on_request_geolocation_permission, :pointer,
+          :on_cancel_geolocation_permission, :pointer
+  end
+
+  class CefJavascriptDialogHandler
+    layout :base, CefBase,
+          :on_jsdialog, :pointer,
+          :on_before_unload_dialog, :pointer,
+          :on_reset_dialog_state, :pointer
+  end
+
+  class CefKeyboardHandler
+    layout :base, CefBase,
+          :on_pre_key_event, :pointer,
+          :on_key_event, :pointer
+  end
+
+  class CefLifeSpanHandler
+    layout :base, CefBase,
+          :on_before_popup, :pointer,
+          :on_after_created, :pointer,
+          :run_modal, :pointer,
+          :do_close, :pointer,
+          :on_before_close, :pointer
+  end
+
+  class CefLoadHandler
+    layout :base, CefBase,
+          :on_load_start, :pointer,
+          :on_load_end, :pointer,
+          :on_load_error, :pointer,
+          :on_render_process_terminated, :pointer,
+          :on_plugin_crashed, :pointer
+  end
+
+  class CefRenderHandler
+    layout :base, CefBase,
+          :get_root_screen_rect, :pointer,
+          :get_view_rect, :pointer,
+          :get_screen_point, :pointer,
+          :on_popup_show, :pointer,
+          :on_popup_size, :pointer,
+          :on_paint, :pointer,
+          :on_cursor_change, :pointer
+  end
+
+  class CefRequestHandler
+    layout :base, CefBase,
+          :on_before_resource_load, :pointer,
+          :get_resource_handler, :pointer,
+          :on_resource_redirect, :pointer,
+          :get_auth_credentials, :pointer,
+          :on_quota_request, :pointer,
+          :get_cookie_manager, :pointer,
+          :on_protocol_execution, :pointer,
+          :on_before_plugin_load, :pointer
   end
 
   class CefClient < FFI::Struct
@@ -191,18 +258,18 @@ module MyLibrary
 
   class CefClient
     layout :base, CefBase,
-          :_cef_context_menu_handler_t, :pointer,
-          :_cef_dialog_handler_t, :pointer,
-          :_cef_display_handler_t, :pointer,
-          :_cef_download_handler_t, :pointer,
-          :_cef_focus_handler_t, :pointer,
-          :_cef_geolocation_handler_t, :pointer,
-          :_cef_jsdialog_handler_t, :pointer,
-          :_cef_keyboard_handler_t, :pointer,
-          :_cef_life_span_handler_t, :pointer,
-          :_cef_load_handler_t, :pointer,
-          :_cef_render_handler_t, :pointer,
-          :_cef_request_handler_t, :pointer,
+          :_cef_context_menu_handler_t, CefContextMenuHandler,
+          :_cef_dialog_handler_t, CefDialogHandler,
+          :_cef_display_handler_t, CefDisplayHandler,
+          :_cef_download_handler_t, CefDownloadHandler,
+          :_cef_focus_handler_t, CefFocusHandler,
+          :_cef_geolocation_handler_t, CefGeolocationHandler,
+          :_cef_jsdialog_handler_t, CefJavascriptDialogHandler,
+          :_cef_keyboard_handler_t, CefKeyboardHandler,
+          :_cef_life_span_handler_t, CefLifeSpanHandler,
+          :_cef_load_handler_t, CefLoadHandler,
+          :_cef_render_handler_t, CefRequestHandler,
+          :_cef_request_handler_t, CefRequestHandler,
           :on_process_message_received, :pointer
   end
 end
