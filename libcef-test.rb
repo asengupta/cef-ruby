@@ -158,7 +158,38 @@ module MyLibrary
       :_cef_render_process_handler_t, :pointer
   end
 
+  class CefContextMenuHandler
+    layout :base, CefBase,
+          :on_before_context_menu, :pointer,
+          :on_context_menu_command, :pointer,
+          :on_context_menu_dismissed, :pointer
+  end
+
+  class CefDialogHandler
+    layout :base, CefBase,
+          :on_file_dialog, :pointer
+  end
+
+  class CefDisplayHandler
+    layout :base, CefBase,
+          :on_loading_state_change, :pointer,
+          :on_address_change, :pointer,
+          :on_title_change, :pointer,
+          :on_tooltip, :pointer,
+          :on_status_message, :pointer,
+          :on_console_message, :pointer
+  end
+
+  class CefDisplayHandler
+    layout :base, CefBase,
+          :on_before_download, :pointer,
+          :on_download_updated, :pointer
+  end
+
   class CefClient < FFI::Struct
+  end
+
+  class CefClient
     layout :base, CefBase,
           :_cef_context_menu_handler_t, :pointer,
           :_cef_dialog_handler_t, :pointer,
@@ -190,6 +221,7 @@ class RubyApp
         mainArgs[:argv] = LibC.malloc(0);
         settings = MyLibrary::CefSettings.new;
         client = MyLibrary::CefClient.new;
+        client[:_cef_context_menu_handler_t] = FFI::Function()
         browser_settings = MyLibrary::BrowserSettings.new;
         window_info = MyLibrary::WindowInfo.new;
 
