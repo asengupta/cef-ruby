@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require("ffi");
 
 module LibC
@@ -39,6 +40,7 @@ module MyLibrary
   attach_function(:gtk_vbox_new, [:bool, :int], :pointer);
   attach_function(:cef_run_message_loop, [], :void);
   attach_function(:cef_shutdown, [], :void);
+  attach_function(:cef_execute_process, [:pointer, :pointer], :int);
 
   puts("That wasn't so bad!");
   LogSeverity = enum :LogSeverity, [
@@ -287,10 +289,25 @@ class RubyApp
         top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
         # area = MyLibrary.gtk_drawing_area_new();
         # MyLibrary.gtk_container_add(top, area);
-        mainArgs = MyLibrary::MainArgs.new;
-        mainArgs[:argc] = 0;
-        mainArgs[:argv] = LibC.malloc(0);
+        # mainArgs = MyLibrary::MainArgs.new;
+        # mainArgs[:argc] = 0;
+        # mainArgs[:argv] = LibC.malloc(0);
         settings = MyLibrary::CefSettings.new;
+
+        mainArgs = MyLibrary::MainArgs.new;
+        args = [];
+        # args << FFI::MemoryPointer.from_string("ruby " + $0);
+        ARGV.each do |a|
+          args << FFI::MemoryPointer.from_string(a);
+        end
+        args << nil;
+        puts(args);
+        argv = FFI::MemoryPointer.new(:pointer, args.length)
+            args.each_with_index do |p, i|
+            argv[i].put_pointer(0, p);
+        end
+        mainArgs[:argc] = ARGV.length;
+        mainArgs[:argv] = argv;
         client = MyLibrary::CefClient.new;
 
         client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
@@ -340,9 +357,10 @@ class RubyApp
         resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
         url = "http://google.com";
 
-
-        settings[:single_process] = true
-        settings[:browser_subprocess_path] = MyLibrary.cefString(".")
+        puts $0
+        puts "Invoking..." + ARGV.to_s
+        settings[:single_process] = false
+        settings[:browser_subprocess_path] = MyLibrary.cefString("./libcef-test.rb")
         settings[:multi_threaded_message_loop] = false
         settings[:command_line_args_disabled] = false
         settings[:cache_path] = MyLibrary.cefString(".")
@@ -355,14 +373,16 @@ class RubyApp
         settings[:javascript_flags] = MyLibrary.cefString("")
         settings[:auto_detect_proxy_settings_enabled] = true
         settings[:pack_loading_disabled] = false
-        settings[:remote_debugging_port] = 12121
+        # settings[:remote_debugging_port] = 12121
         settings[:uncaught_exception_stack_size] = 200
         settings[:context_safety_implementation] = 0
         settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
         settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
 
         app = MyLibrary::CefApp.new;
-        result = MyLibrary.cef_initialize(mainArgs, settings, nil);
+        MyLibrary.cef_execute_process(mainArgs, nil);
+        result = MyLibrary.cef_initialize(mainArgs, settings, app);
+
         puts("Result: " + result.to_s);
         worked = MyLibrary.cef_browser_host_create_browser_sync(window_info, client, MyLibrary.cefString(url), browser_settings);
         puts(worked);
@@ -375,12 +395,7 @@ class RubyApp
 
     def browserSettings
       browser_settings = MyLibrary::BrowserSettings.new;
-      # x = MyLibrary.cefString("Arial")
-      # puts x[:str]
-      # browser_settings[:size] = 5000
       browser_settings[:standard_font_family] = MyLibrary.cefString("Arial")
-      # blah = MyLibrary::CefString.new(browser_settings[:standard_font_family])
-      # puts(blah[:length]);
       browser_settings[:fixed_font_family] = MyLibrary.cefString("Arial")
       browser_settings[:sans_serif_font_family] = MyLibrary.cefString("Arial")
       browser_settings[:serif_font_family] = MyLibrary.cefString("Arial")
