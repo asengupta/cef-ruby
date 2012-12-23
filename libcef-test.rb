@@ -39,7 +39,7 @@ end
 
 module CefLifeCycle
   extend FFI::Library
-  ffi_lib("/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so");
+  ffi_lib [FFI::CURRENT_PROCESS, "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so"];
   attach_function(:cef_do_message_loop_work, [], :void);
   attach_function(:cef_browser_host_create_browser_sync, [:pointer, :pointer, :pointer, :pointer], :pointer);
   attach_function(:cef_browser_host_create_browser, [:pointer, :pointer, :pointer, :pointer], :pointer);
@@ -168,6 +168,94 @@ module CefLifeCycle
       :_cef_resource_bundle_handler_t, :pointer,
       :_cef_browser_process_handler_t, :pointer,
       :_cef_render_process_handler_t, :pointer
+  end
+
+  class CefCommandLine < FFI::Struct
+  end
+
+  class CefCommandLine
+    layout :base, CefBase,
+          :is_valid, :pointer,
+          :is_read_only, :pointer,
+          :copy, :pointer,
+          :init_from_argv, :pointer,
+          :init_from_string, :pointer,
+          :reset, :pointer,
+          :get_argv, :pointer,
+          :get_command_line_string, :pointer,
+          :get_program, :pointer,
+          :set_program, :pointer,
+          :has_switches, :pointer,
+          :has_switch, :pointer,
+          :get_switch_value, :pointer,
+          :get_switches, :pointer,
+          :append_switch, :pointer,
+          :append_switch_with_value, :pointer,
+          :has_arguments, :pointer,
+          :get_arguments, :pointer,
+          :append_argument, :pointer,
+          :prepend_wrapper, :pointer
+  end
+
+  class CefResourceBundleHandler
+    layout :base, CefBase,
+          :get_localized_string, :pointer,
+          :get_data_resource, :pointer
+  end
+
+  class CefProxyHandler
+    layout :base, CefBase,
+          :get_proxy_for_url, :pointer
+  end
+
+  class CefBrowserProcessHandler
+    layout :base, CefBase,
+          :get_proxy_handler, :pointer,
+          :on_context_initialized, :pointer,
+          :on_before_child_process_launch, :pointer,
+          :on_render_process_thread_created, :pointer
+  end
+
+  class CefRenderProcessHandler
+    layout :base, CefBase,
+          :on_render_thread_created, :pointer,
+          :on_web_kit_initialized, :pointer,
+          :on_browser_created, :pointer,
+          :on_browser_destroyed, :pointer,
+          :on_before_navigation, :pointer,
+          :on_context_created, :pointer,
+          :on_context_released, :pointer,
+          :on_uncaught_exception, :pointer,
+          :on_focused_node_changed, :pointer,
+          :on_process_message_received, :pointer
+  end
+
+  def self.cefApp
+    app = CefApp.new
+    app[:on_before_command_line_processing] = 
+    FFI::Function.new(:void, [:pointer, :pointer, :pointer]) do |me, process_type, command_line|
+      puts "In before command line processing...boooya!!"
+    end
+    app[:on_register_custom_schemes] = 
+    FFI::Function.new(:void, [:pointer, :pointer]) do |me, registrar|
+      puts "In registering custom schemes...boooya!!"
+    end
+    app[:get_resource_bundle_handler] = 
+    FFI::Function.new(:void, [:pointer]) do |me|
+      puts "In getting resource bundler...boooya!!"
+      CefResourceBundleHandler.new
+    end
+    app[:get_browser_process_handler] = 
+    FFI::Function.new(:void, [:pointer]) do |me|
+      puts "In getting browser process handler...boooya!!"
+      CefBrowserProcessHandler.new
+    end
+    app[:get_render_process_handler] = 
+    FFI::Function.new(:void, [:pointer]) do |me|
+      puts "In getting render process handler...boooya!!"
+      CefBrowserProcessHandler.new
+    end
+    app
   end
 
   class CefContextMenuHandler < FFI::Struct
@@ -379,7 +467,7 @@ def run(command_line_args)
     settings[:locales_dir_path] = CefLifeCycle.cefString(locales_dir_path);
     settings[:resources_dir_path] = CefLifeCycle.cefString(resources_dir_path);
 
-    app = CefLifeCycle::CefApp.new;
+    app = CefLifeCycle.cefApp;
     exitCode = CefLifeCycle.cef_execute_process(mainArgs, app);
     return exitCode if exitCode >= 0
     result = CefLifeCycle.cef_initialize(mainArgs, settings, app);
@@ -444,3 +532,5 @@ def browserSettings
 end
 
 
+
+# run(["Soething"]);
