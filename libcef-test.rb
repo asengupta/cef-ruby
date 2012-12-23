@@ -282,8 +282,9 @@ end
 
 require 'gtk2'
 
-def run
-    MyLibrary.gtk_init(0, nil)
+def run(command_line_args)
+    puts "Invoked with..." + command_line_args.to_s
+    MyLibrary.gtk_init(0, nil);
     top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
     # area = MyLibrary.gtk_drawing_area_new();
     # MyLibrary.gtk_container_add(top, area);
@@ -294,8 +295,7 @@ def run
 
     mainArgs = MyLibrary::MainArgs.new;
     args = [];
-    args << FFI::MemoryPointer.from_string("--renderer-cmd-prefix");
-    ARGV.each do |a|
+    command_line_args.each do |a|
       args << FFI::MemoryPointer.from_string(a);
     end
     args << nil;
@@ -304,7 +304,7 @@ def run
         args.each_with_index do |p, i|
         argv[i].put_pointer(0, p);
     end
-    mainArgs[:argc] = ARGV.length;
+    mainArgs[:argc] = command_line_args.length;
     mainArgs[:argv] = argv;
     client = MyLibrary::CefClient.new;
 
@@ -356,7 +356,6 @@ def run
     url = "http://google.com";
 
     puts $0
-    puts "Invoking..." + ARGV.to_s
     settings[:single_process] = false
     settings[:browser_subprocess_path] = MyLibrary.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false

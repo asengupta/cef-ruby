@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
       rb_ary_push(array, rb_str_new2(argv[i]));
     }
 
-    rb_funcall(Qnil, rb_intern("require"), 1, rb_str_new2("./script"));
-    rb_funcall(Qnil, rb_intern("herein"), 1, array);
+    rb_funcall(Qnil, rb_intern("require"), 1, rb_str_new2("./libcef-test.rb"));
+    rb_funcall(Qnil, rb_intern("run"), 1, array);
 	}
 	return 0;
 }
