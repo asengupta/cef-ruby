@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     }
 
     rb_funcall(Qnil, rb_intern("require"), 1, rb_str_new2("./script"));
-    rb_funcall(Qnil, rb_intern("herein"), 0);
+    rb_funcall(Qnil, rb_intern("herein"), 1, array);
 	}
 	return 0;
 }
