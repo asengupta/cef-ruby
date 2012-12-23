@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
   }
 	ruby_sysinit(&argc, &argv);
 	{
-	  printf("Helloooo\n");
   	RUBY_INIT_STACK;
   	ruby_init();
   	ruby_init_loadpath();

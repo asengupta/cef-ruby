@@ -282,7 +282,7 @@ module MyLibrary
 end
 
 def run(command_line_args)
-    puts "Invoked with..." + command_line_args.to_s
+    # puts "Invoked with..." + command_line_args.to_s
     MyLibrary.gtk_init(0, nil);
     top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
     # area = MyLibrary.gtk_drawing_area_new();
@@ -298,7 +298,7 @@ def run(command_line_args)
       args << FFI::MemoryPointer.from_string(a);
     end
     args << nil;
-    puts(args);
+    # puts(args);
     argv = FFI::MemoryPointer.new(:pointer, args.length)
         args.each_with_index do |p, i|
         argv[i].put_pointer(0, p);
@@ -354,7 +354,6 @@ def run(command_line_args)
     resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
     url = "http://google.com";
 
-    puts $0
     settings[:single_process] = false
     settings[:browser_subprocess_path] = MyLibrary.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
@@ -376,13 +375,13 @@ def run(command_line_args)
     settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
 
     app = MyLibrary::CefApp.new;
-    exitCode = MyLibrary.cef_execute_process(mainArgs, nil);
+    exitCode = MyLibrary.cef_execute_process(mainArgs, app);
     return exitCode if exitCode >= 0
     result = MyLibrary.cef_initialize(mainArgs, settings, app);
 
-    puts("Result: " + result.to_s);
+    puts("CEF Initialisation: " + result.to_s);
     worked = MyLibrary.cef_browser_host_create_browser_sync(window_info, client, MyLibrary.cefString(url), browser_settings);
-    puts(worked);
+    puts("Browser address=" + worked.to_s);
     MyLibrary.gtk_container_add(top, vbox);
     MyLibrary.gtk_widget_show(top);
     MyLibrary.gtk_main();
