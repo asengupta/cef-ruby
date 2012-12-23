@@ -19,18 +19,14 @@ module LibC
   
 end # module LibC
 
-module CefLifeCycle
+module Gtk
   extend FFI::Library
+  ffi_lib("/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so");
   enum :GtkWindowType, [
     :GTK_WINDOW_TOPLEVEL,
     :GTK_WINDOW_POPUP
   ];
-  ffi_lib("/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so");
-  attach_function(:cef_do_message_loop_work, [], :void);
-  attach_function(:cef_browser_host_create_browser_sync, [:pointer, :pointer, :pointer, :pointer], :pointer);
-  attach_function(:cef_browser_host_create_browser, [:pointer, :pointer, :pointer, :pointer], :pointer);
-  attach_function(:cef_initialize, [:pointer, :pointer, :pointer], :int);
-  attach_function(:cef_string_ascii_to_utf16, [:string, :size_t, :pointer], :int);
+
   attach_function(:gtk_window_new, [:GtkWindowType], :pointer);
   attach_function(:gtk_drawing_area_new, [], :pointer);
   attach_function(:gtk_init, [:int, :pointer], :void);
@@ -39,6 +35,16 @@ module CefLifeCycle
   attach_function(:gtk_widget_show_all, [:pointer], :void);
   attach_function(:gtk_main, [], :void);
   attach_function(:gtk_vbox_new, [:bool, :int], :pointer);
+end
+
+module CefLifeCycle
+  extend FFI::Library
+  ffi_lib("/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so");
+  attach_function(:cef_do_message_loop_work, [], :void);
+  attach_function(:cef_browser_host_create_browser_sync, [:pointer, :pointer, :pointer, :pointer], :pointer);
+  attach_function(:cef_browser_host_create_browser, [:pointer, :pointer, :pointer, :pointer], :pointer);
+  attach_function(:cef_initialize, [:pointer, :pointer, :pointer], :int);
+  attach_function(:cef_string_ascii_to_utf16, [:string, :size_t, :pointer], :int);
   attach_function(:cef_run_message_loop, [], :void);
   attach_function(:cef_shutdown, [], :void);
   attach_function(:cef_execute_process, [:pointer, :pointer], :int);
@@ -282,10 +288,10 @@ end
 
 def run(command_line_args)
     # puts "Invoked with..." + command_line_args.to_s
-    CefLifeCycle.gtk_init(0, nil);
-    top = CefLifeCycle.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
-    # area = CefLifeCycle.gtk_drawing_area_new();
-    # CefLifeCycle.gtk_container_add(top, area);
+    Gtk.gtk_init(0, nil);
+    top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
+    # area = Gtk.gtk_drawing_area_new();
+    # Gtk.gtk_container_add(top, area);
     # mainArgs = CefLifeCycle::MainArgs.new;
     # mainArgs[:argc] = 0;
     # mainArgs[:argv] = LibC.malloc(0);
@@ -345,7 +351,7 @@ def run(command_line_args)
 
     browser_settings = browserSettings();
     window_info = CefLifeCycle::WindowInfo.new;
-    vbox = CefLifeCycle.gtk_vbox_new(false, 0);
+    vbox = Gtk.gtk_vbox_new(false, 0);
     # window_info[:parent_widget] = top;
     window_info[:parent_widget] = vbox;
 
@@ -381,9 +387,9 @@ def run(command_line_args)
     puts("CEF Initialisation: " + result.to_s);
     worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
     puts("Browser address=" + worked.to_s);
-    CefLifeCycle.gtk_container_add(top, vbox);
-    CefLifeCycle.gtk_widget_show(top);
-    CefLifeCycle.gtk_main();
+    Gtk.gtk_container_add(top, vbox);
+    Gtk.gtk_widget_show(top);
+    Gtk.gtk_main();
     CefLifeCycle.cef_run_message_loop();
     CefLifeCycle.cef_shutdown();
 end
