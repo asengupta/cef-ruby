@@ -296,7 +296,7 @@ class RubyApp
 
         mainArgs = MyLibrary::MainArgs.new;
         args = [];
-        # args << FFI::MemoryPointer.from_string("ruby " + $0);
+        args << FFI::MemoryPointer.from_string("--renderer-cmd-prefix");
         ARGV.each do |a|
           args << FFI::MemoryPointer.from_string(a);
         end
