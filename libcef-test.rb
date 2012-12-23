@@ -19,7 +19,7 @@ module LibC
   
 end # module LibC
 
-module MyLibrary
+module CefLifeCycle
   extend FFI::Library
   enum :GtkWindowType, [
     :GTK_WINDOW_TOPLEVEL,
@@ -67,7 +67,7 @@ module MyLibrary
 
   def self.cefString(s)
     ptr = FFI::MemoryPointer.new :pointer;
-    MyLibrary.cef_string_ascii_to_utf16(s, s.length, ptr);
+    CefLifeCycle.cef_string_ascii_to_utf16(s, s.length, ptr);
     ptr = ptr.get_pointer(0);
   	str = CefString.new;
   	str[:str] = ptr;
@@ -282,16 +282,16 @@ end
 
 def run(command_line_args)
     # puts "Invoked with..." + command_line_args.to_s
-    MyLibrary.gtk_init(0, nil);
-    top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
-    # area = MyLibrary.gtk_drawing_area_new();
-    # MyLibrary.gtk_container_add(top, area);
-    # mainArgs = MyLibrary::MainArgs.new;
+    CefLifeCycle.gtk_init(0, nil);
+    top = CefLifeCycle.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
+    # area = CefLifeCycle.gtk_drawing_area_new();
+    # CefLifeCycle.gtk_container_add(top, area);
+    # mainArgs = CefLifeCycle::MainArgs.new;
     # mainArgs[:argc] = 0;
     # mainArgs[:argv] = LibC.malloc(0);
-    settings = MyLibrary::CefSettings.new;
+    settings = CefLifeCycle::CefSettings.new;
 
-    mainArgs = MyLibrary::MainArgs.new;
+    mainArgs = CefLifeCycle::MainArgs.new;
     args = [];
     command_line_args.each do |a|
       args << FFI::MemoryPointer.from_string(a);
@@ -304,7 +304,7 @@ def run(command_line_args)
     end
     mainArgs[:argc] = command_line_args.length;
     mainArgs[:argv] = argv;
-    client = MyLibrary::CefClient.new;
+    client = CefLifeCycle::CefClient.new;
 
     client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
       return CefKeyboardHandler.new
@@ -344,8 +344,8 @@ def run(command_line_args)
     end
 
     browser_settings = browserSettings();
-    window_info = MyLibrary::WindowInfo.new;
-    vbox = MyLibrary.gtk_vbox_new(false, 0);
+    window_info = CefLifeCycle::WindowInfo.new;
+    vbox = CefLifeCycle.gtk_vbox_new(false, 0);
     # window_info[:parent_widget] = top;
     window_info[:parent_widget] = vbox;
 
@@ -354,53 +354,53 @@ def run(command_line_args)
     url = "http://google.com";
 
     settings[:single_process] = false
-    settings[:browser_subprocess_path] = MyLibrary.cefString("./embed.out")
+    settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
-    settings[:cache_path] = MyLibrary.cefString(".")
-    settings[:user_agent] = MyLibrary.cefString("Chrome")
-    settings[:product_version] = MyLibrary.cefString("12212")
-    settings[:locale] = MyLibrary.cefString("en-US")
-    settings[:log_file] = MyLibrary.cefString("./chromium.log")
-    # settings[:log_severity] = MyLibrary::LogSeverity[:LOGSEVERITY_DEFAULT],
+    settings[:cache_path] = CefLifeCycle.cefString(".")
+    settings[:user_agent] = CefLifeCycle.cefString("Chrome")
+    settings[:product_version] = CefLifeCycle.cefString("12212")
+    settings[:locale] = CefLifeCycle.cefString("en-US")
+    settings[:log_file] = CefLifeCycle.cefString("./chromium.log")
+    # settings[:log_severity] = CefLifeCycle::LogSeverity[:LOGSEVERITY_DEFAULT],
     settings[:release_dcheck_enabled] = false
-    settings[:javascript_flags] = MyLibrary.cefString("")
+    settings[:javascript_flags] = CefLifeCycle.cefString("")
     settings[:auto_detect_proxy_settings_enabled] = true
     settings[:pack_loading_disabled] = false
     # settings[:remote_debugging_port] = 12121
     settings[:uncaught_exception_stack_size] = 200
     settings[:context_safety_implementation] = 0
-    settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
-    settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
+    settings[:locales_dir_path] = CefLifeCycle.cefString(locales_dir_path);
+    settings[:resources_dir_path] = CefLifeCycle.cefString(resources_dir_path);
 
-    app = MyLibrary::CefApp.new;
-    exitCode = MyLibrary.cef_execute_process(mainArgs, app);
+    app = CefLifeCycle::CefApp.new;
+    exitCode = CefLifeCycle.cef_execute_process(mainArgs, app);
     return exitCode if exitCode >= 0
-    result = MyLibrary.cef_initialize(mainArgs, settings, app);
+    result = CefLifeCycle.cef_initialize(mainArgs, settings, app);
 
     puts("CEF Initialisation: " + result.to_s);
-    worked = MyLibrary.cef_browser_host_create_browser_sync(window_info, client, MyLibrary.cefString(url), browser_settings);
+    worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
     puts("Browser address=" + worked.to_s);
-    MyLibrary.gtk_container_add(top, vbox);
-    MyLibrary.gtk_widget_show(top);
-    MyLibrary.gtk_main();
-    MyLibrary.cef_run_message_loop();
-    MyLibrary.cef_shutdown();
+    CefLifeCycle.gtk_container_add(top, vbox);
+    CefLifeCycle.gtk_widget_show(top);
+    CefLifeCycle.gtk_main();
+    CefLifeCycle.cef_run_message_loop();
+    CefLifeCycle.cef_shutdown();
 end
 
 def browserSettings
-  browser_settings = MyLibrary::BrowserSettings.new;
-  browser_settings[:standard_font_family] = MyLibrary.cefString("Arial")
-  browser_settings[:fixed_font_family] = MyLibrary.cefString("Arial")
-  browser_settings[:sans_serif_font_family] = MyLibrary.cefString("Arial")
-  browser_settings[:serif_font_family] = MyLibrary.cefString("Arial")
-  browser_settings[:cursive_font_family] = MyLibrary.cefString("Arial")
-  browser_settings[:fantasy_font_family] = MyLibrary.cefString("Arial")
+  browser_settings = CefLifeCycle::BrowserSettings.new;
+  browser_settings[:standard_font_family] = CefLifeCycle.cefString("Arial")
+  browser_settings[:fixed_font_family] = CefLifeCycle.cefString("Arial")
+  browser_settings[:sans_serif_font_family] = CefLifeCycle.cefString("Arial")
+  browser_settings[:serif_font_family] = CefLifeCycle.cefString("Arial")
+  browser_settings[:cursive_font_family] = CefLifeCycle.cefString("Arial")
+  browser_settings[:fantasy_font_family] = CefLifeCycle.cefString("Arial")
   browser_settings[:default_font_size] = 20
   browser_settings[:minimum_font_size] = 20
   browser_settings[:default_fixed_font_size] = 20
   browser_settings[:minimum_logical_font_size] = 20
-  browser_settings[:default_encoding] = MyLibrary.cefString("UTF-16")
+  browser_settings[:default_encoding] = CefLifeCycle.cefString("UTF-16")
   browser_settings[:encoding_detector_enabled] = true
   browser_settings[:javascript_disabled] = false
   browser_settings[:javascript_open_windows_disallowed] = false
@@ -421,7 +421,7 @@ def browserSettings
   browser_settings[:tab_to_links_disabled] = false
   browser_settings[:hyperlink_auditing_disabled] = true
   browser_settings[:user_style_sheet_enabled] = false
-  browser_settings[:user_style_sheet_location] = MyLibrary.cefString(".")
+  browser_settings[:user_style_sheet_location] = CefLifeCycle.cefString(".")
   browser_settings[:author_and_user_styles_disabled] = true
   browser_settings[:local_storage_disabled] = true
   browser_settings[:databases_disabled] = true
