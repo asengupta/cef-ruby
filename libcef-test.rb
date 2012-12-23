@@ -43,7 +43,6 @@ module MyLibrary
   attach_function(:cef_shutdown, [], :void);
   attach_function(:cef_execute_process, [:pointer, :pointer], :int);
 
-  puts("That wasn't so bad!");
   LogSeverity = enum :LogSeverity, [
   :LOGSEVERITY_DEFAULT,
   :LOGSEVERITY_VERBOSE,
