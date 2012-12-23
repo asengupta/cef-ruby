@@ -282,166 +282,163 @@ end
 
 require 'gtk2'
 
-class RubyApp
+def run
+    MyLibrary.gtk_init(0, nil)
+    top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
+    # area = MyLibrary.gtk_drawing_area_new();
+    # MyLibrary.gtk_container_add(top, area);
+    # mainArgs = MyLibrary::MainArgs.new;
+    # mainArgs[:argc] = 0;
+    # mainArgs[:argv] = LibC.malloc(0);
+    settings = MyLibrary::CefSettings.new;
 
-    def initialize
-        MyLibrary.gtk_init(0, nil)
-        top = MyLibrary.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
-        # area = MyLibrary.gtk_drawing_area_new();
-        # MyLibrary.gtk_container_add(top, area);
-        # mainArgs = MyLibrary::MainArgs.new;
-        # mainArgs[:argc] = 0;
-        # mainArgs[:argv] = LibC.malloc(0);
-        settings = MyLibrary::CefSettings.new;
+    mainArgs = MyLibrary::MainArgs.new;
+    args = [];
+    args << FFI::MemoryPointer.from_string("--renderer-cmd-prefix");
+    ARGV.each do |a|
+      args << FFI::MemoryPointer.from_string(a);
+    end
+    args << nil;
+    puts(args);
+    argv = FFI::MemoryPointer.new(:pointer, args.length)
+        args.each_with_index do |p, i|
+        argv[i].put_pointer(0, p);
+    end
+    mainArgs[:argc] = ARGV.length;
+    mainArgs[:argv] = argv;
+    client = MyLibrary::CefClient.new;
 
-        mainArgs = MyLibrary::MainArgs.new;
-        args = [];
-        args << FFI::MemoryPointer.from_string("--renderer-cmd-prefix");
-        ARGV.each do |a|
-          args << FFI::MemoryPointer.from_string(a);
-        end
-        args << nil;
-        puts(args);
-        argv = FFI::MemoryPointer.new(:pointer, args.length)
-            args.each_with_index do |p, i|
-            argv[i].put_pointer(0, p);
-        end
-        mainArgs[:argc] = ARGV.length;
-        mainArgs[:argv] = argv;
-        client = MyLibrary::CefClient.new;
-
-        client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefKeyboardHandler.new
-        end
-        client[:_cef_dialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefDialogHandler.new
-        end
-        client[:_cef_context_menu_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefContextMenuHandler.new
-        end
-        client[:_cef_request_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefRequestHandler.new
-        end
-        client[:_cef_render_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefRenderHandler.new
-        end
-        client[:_cef_load_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefLoadHandler.new
-        end
-        client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefKeyboardHandler.new
-        end
-        client[:_cef_jsdialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefJavascriptDialogHandler.new
-        end
-        client[:_cef_geolocation_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefGeolocationHandler.new
-        end
-        client[:_cef_focus_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefFocusHandler.new
-        end
-        client[:_cef_download_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefDownloadHandler.new
-        end
-        client[:_cef_life_span_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-          return CefLifeSpanHandler.new
-        end
-
-        browser_settings = browserSettings();
-        window_info = MyLibrary::WindowInfo.new;
-        vbox = MyLibrary.gtk_vbox_new(false, 0);
-        # window_info[:parent_widget] = top;
-        window_info[:parent_widget] = vbox;
-
-        locales_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/locales";
-        resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
-        url = "http://google.com";
-
-        puts $0
-        puts "Invoking..." + ARGV.to_s
-        settings[:single_process] = false
-        settings[:browser_subprocess_path] = MyLibrary.cefString("./libcef-test.rb")
-        settings[:multi_threaded_message_loop] = false
-        settings[:command_line_args_disabled] = false
-        settings[:cache_path] = MyLibrary.cefString(".")
-        settings[:user_agent] = MyLibrary.cefString("Chrome")
-        settings[:product_version] = MyLibrary.cefString("12212")
-        settings[:locale] = MyLibrary.cefString("en-US")
-        settings[:log_file] = MyLibrary.cefString("./chromium.log")
-        # settings[:log_severity] = MyLibrary::LogSeverity[:LOGSEVERITY_DEFAULT],
-        settings[:release_dcheck_enabled] = false
-        settings[:javascript_flags] = MyLibrary.cefString("")
-        settings[:auto_detect_proxy_settings_enabled] = true
-        settings[:pack_loading_disabled] = false
-        # settings[:remote_debugging_port] = 12121
-        settings[:uncaught_exception_stack_size] = 200
-        settings[:context_safety_implementation] = 0
-        settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
-        settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
-
-        app = MyLibrary::CefApp.new;
-        MyLibrary.cef_execute_process(mainArgs, nil);
-        result = MyLibrary.cef_initialize(mainArgs, settings, app);
-
-        puts("Result: " + result.to_s);
-        worked = MyLibrary.cef_browser_host_create_browser_sync(window_info, client, MyLibrary.cefString(url), browser_settings);
-        puts(worked);
-        MyLibrary.gtk_container_add(top, vbox);
-        MyLibrary.gtk_widget_show(top);
-        MyLibrary.gtk_main();
-        MyLibrary.cef_run_message_loop();
-        MyLibrary.cef_shutdown();
+    client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefKeyboardHandler.new
+    end
+    client[:_cef_dialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefDialogHandler.new
+    end
+    client[:_cef_context_menu_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefContextMenuHandler.new
+    end
+    client[:_cef_request_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefRequestHandler.new
+    end
+    client[:_cef_render_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefRenderHandler.new
+    end
+    client[:_cef_load_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefLoadHandler.new
+    end
+    client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefKeyboardHandler.new
+    end
+    client[:_cef_jsdialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefJavascriptDialogHandler.new
+    end
+    client[:_cef_geolocation_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefGeolocationHandler.new
+    end
+    client[:_cef_focus_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefFocusHandler.new
+    end
+    client[:_cef_download_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefDownloadHandler.new
+    end
+    client[:_cef_life_span_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      return CefLifeSpanHandler.new
     end
 
-    def browserSettings
-      browser_settings = MyLibrary::BrowserSettings.new;
-      browser_settings[:standard_font_family] = MyLibrary.cefString("Arial")
-      browser_settings[:fixed_font_family] = MyLibrary.cefString("Arial")
-      browser_settings[:sans_serif_font_family] = MyLibrary.cefString("Arial")
-      browser_settings[:serif_font_family] = MyLibrary.cefString("Arial")
-      browser_settings[:cursive_font_family] = MyLibrary.cefString("Arial")
-      browser_settings[:fantasy_font_family] = MyLibrary.cefString("Arial")
-      browser_settings[:default_font_size] = 20
-      browser_settings[:minimum_font_size] = 20
-      browser_settings[:default_fixed_font_size] = 20
-      browser_settings[:minimum_logical_font_size] = 20
-      browser_settings[:default_encoding] = MyLibrary.cefString("UTF-16")
-      browser_settings[:encoding_detector_enabled] = true
-      browser_settings[:javascript_disabled] = false
-      browser_settings[:javascript_open_windows_disallowed] = false
-      browser_settings[:javascript_close_windows_disallowed] = false
-      browser_settings[:javascript_access_clipboard_disallowed] = false
-      browser_settings[:dom_paste_disabled] = false
-      browser_settings[:caret_browsing_enabled] = false
-      browser_settings[:java_disabled] = false
-      browser_settings[:plugins_disabled] = true
-      browser_settings[:universal_access_from_file_urls_allowed] = true
-      browser_settings[:file_access_from_file_urls_allowed] = false
-      browser_settings[:xss_auditor_enabled] = false
-      browser_settings[:image_load_disabled] = false
-      browser_settings[:shrink_standalone_images_to_fit] = true
-      browser_settings[:site_specific_quirks_disabled] = true
-      browser_settings[:text_area_resize_disabled] = true
-      browser_settings[:page_cache_disabled] = true
-      browser_settings[:tab_to_links_disabled] = false
-      browser_settings[:hyperlink_auditing_disabled] = true
-      browser_settings[:user_style_sheet_enabled] = false
-      browser_settings[:user_style_sheet_location] = MyLibrary.cefString(".")
-      browser_settings[:author_and_user_styles_disabled] = true
-      browser_settings[:local_storage_disabled] = true
-      browser_settings[:databases_disabled] = true
-      browser_settings[:application_cache_disabled] = true
-      browser_settings[:webgl_disabled] = false
-      browser_settings[:accelerated_compositing_disabled] = false
-      browser_settings[:accelerated_layers_disabled] = false
-      browser_settings[:accelerated_video_disabled] = false
-      browser_settings[:accelerated_2d_canvas_disabled] = false
-      browser_settings[:accelerated_plugins_disabled] = true
-      browser_settings[:developer_tools_disabled] = true
+    browser_settings = browserSettings();
+    window_info = MyLibrary::WindowInfo.new;
+    vbox = MyLibrary.gtk_vbox_new(false, 0);
+    # window_info[:parent_widget] = top;
+    window_info[:parent_widget] = vbox;
 
-      return browser_settings;
-    end
+    locales_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/locales";
+    resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
+    url = "http://google.com";
 
+    puts $0
+    puts "Invoking..." + ARGV.to_s
+    settings[:single_process] = false
+    settings[:browser_subprocess_path] = MyLibrary.cefString("./embed.out")
+    settings[:multi_threaded_message_loop] = false
+    settings[:command_line_args_disabled] = false
+    settings[:cache_path] = MyLibrary.cefString(".")
+    settings[:user_agent] = MyLibrary.cefString("Chrome")
+    settings[:product_version] = MyLibrary.cefString("12212")
+    settings[:locale] = MyLibrary.cefString("en-US")
+    settings[:log_file] = MyLibrary.cefString("./chromium.log")
+    # settings[:log_severity] = MyLibrary::LogSeverity[:LOGSEVERITY_DEFAULT],
+    settings[:release_dcheck_enabled] = false
+    settings[:javascript_flags] = MyLibrary.cefString("")
+    settings[:auto_detect_proxy_settings_enabled] = true
+    settings[:pack_loading_disabled] = false
+    # settings[:remote_debugging_port] = 12121
+    settings[:uncaught_exception_stack_size] = 200
+    settings[:context_safety_implementation] = 0
+    settings[:locales_dir_path] = MyLibrary.cefString(locales_dir_path);
+    settings[:resources_dir_path] = MyLibrary.cefString(resources_dir_path);
+
+    app = MyLibrary::CefApp.new;
+    exitCode = MyLibrary.cef_execute_process(mainArgs, nil);
+    return exitCode if exitCode >= 0
+    result = MyLibrary.cef_initialize(mainArgs, settings, app);
+
+    puts("Result: " + result.to_s);
+    worked = MyLibrary.cef_browser_host_create_browser_sync(window_info, client, MyLibrary.cefString(url), browser_settings);
+    puts(worked);
+    MyLibrary.gtk_container_add(top, vbox);
+    MyLibrary.gtk_widget_show(top);
+    MyLibrary.gtk_main();
+    MyLibrary.cef_run_message_loop();
+    MyLibrary.cef_shutdown();
 end
 
-window = RubyApp.new
+def browserSettings
+  browser_settings = MyLibrary::BrowserSettings.new;
+  browser_settings[:standard_font_family] = MyLibrary.cefString("Arial")
+  browser_settings[:fixed_font_family] = MyLibrary.cefString("Arial")
+  browser_settings[:sans_serif_font_family] = MyLibrary.cefString("Arial")
+  browser_settings[:serif_font_family] = MyLibrary.cefString("Arial")
+  browser_settings[:cursive_font_family] = MyLibrary.cefString("Arial")
+  browser_settings[:fantasy_font_family] = MyLibrary.cefString("Arial")
+  browser_settings[:default_font_size] = 20
+  browser_settings[:minimum_font_size] = 20
+  browser_settings[:default_fixed_font_size] = 20
+  browser_settings[:minimum_logical_font_size] = 20
+  browser_settings[:default_encoding] = MyLibrary.cefString("UTF-16")
+  browser_settings[:encoding_detector_enabled] = true
+  browser_settings[:javascript_disabled] = false
+  browser_settings[:javascript_open_windows_disallowed] = false
+  browser_settings[:javascript_close_windows_disallowed] = false
+  browser_settings[:javascript_access_clipboard_disallowed] = false
+  browser_settings[:dom_paste_disabled] = false
+  browser_settings[:caret_browsing_enabled] = false
+  browser_settings[:java_disabled] = false
+  browser_settings[:plugins_disabled] = true
+  browser_settings[:universal_access_from_file_urls_allowed] = true
+  browser_settings[:file_access_from_file_urls_allowed] = false
+  browser_settings[:xss_auditor_enabled] = false
+  browser_settings[:image_load_disabled] = false
+  browser_settings[:shrink_standalone_images_to_fit] = true
+  browser_settings[:site_specific_quirks_disabled] = true
+  browser_settings[:text_area_resize_disabled] = true
+  browser_settings[:page_cache_disabled] = true
+  browser_settings[:tab_to_links_disabled] = false
+  browser_settings[:hyperlink_auditing_disabled] = true
+  browser_settings[:user_style_sheet_enabled] = false
+  browser_settings[:user_style_sheet_location] = MyLibrary.cefString(".")
+  browser_settings[:author_and_user_styles_disabled] = true
+  browser_settings[:local_storage_disabled] = true
+  browser_settings[:databases_disabled] = true
+  browser_settings[:application_cache_disabled] = true
+  browser_settings[:webgl_disabled] = false
+  browser_settings[:accelerated_compositing_disabled] = false
+  browser_settings[:accelerated_layers_disabled] = false
+  browser_settings[:accelerated_video_disabled] = false
+  browser_settings[:accelerated_2d_canvas_disabled] = false
+  browser_settings[:accelerated_plugins_disabled] = true
+  browser_settings[:developer_tools_disabled] = true
+
+  return browser_settings;
+end
+
+
