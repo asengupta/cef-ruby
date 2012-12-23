@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+require("rubygems")
 require("ffi");
 
 module LibC
@@ -279,8 +280,6 @@ module MyLibrary
           :on_process_message_received, :pointer
   end
 end
-
-require 'gtk2'
 
 def run(command_line_args)
     puts "Invoked with..." + command_line_args.to_s
