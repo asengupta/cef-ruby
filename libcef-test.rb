@@ -216,6 +216,34 @@ module CefLifeCycle
           :on_render_process_thread_created, :pointer
   end
 
+  def self.cefProxyHandler
+    handler = CefLifeCycle::CefProxyHandler.new
+    handler[:get_proxy_for_url] = FFI::Function.new(:void, [:pointer]) do |me, url, proxy_info|
+      # TODO: Create _cef_proxy_info_t
+      puts "Getting URL";
+    end
+    handler
+  end
+
+  def self.cefBrowserProcessHandler
+    handler = CefLifeCycle.CefBrowserProcessHandler.new
+    handler[:_cef_proxy_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |me|
+      puts "Getting proxy handler"
+      self.cefProxyHandler
+    end
+    handler[:on_context_initialized] = FFI::Function.new(:void, [:pointer]) do |me|
+      puts "Initialised context"
+    end
+    handler[:on_before_child_process_launch] = FFI::Function.new(:void, [:pointer, :pointer]) do |me, command_line|
+      puts "Before launching child process"
+    end
+    handler[:on_render_process_thread_created] = FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
+      # TODO: Create _cef_list_value_t type
+      puts "On creating render process"
+    end
+    handler
+  end
+
   class CefRenderProcessHandler < FFI::Struct
     layout :base, CefBase,
           :on_render_thread_created, :pointer,
@@ -249,12 +277,12 @@ module CefLifeCycle
     app[:_cef_browser_process_handler_t] = 
     FFI::Function.new(:void, [:pointer]) do |me|
       puts "In getting browser process handler...boooya!!"
-      CefBrowserProcessHandler.new
+      self.cefBrowserProcessHandler
     end
     app[:_cef_render_process_handler_t] = 
     FFI::Function.new(:void, [:pointer]) do |me|
       puts "In getting render process handler...boooya!!"
-      CefBrowserProcessHandler.new
+      CefRenderProcessHandler.new
     end
     app
   end
@@ -376,7 +404,7 @@ module CefLifeCycle
 end
 
 def run(command_line_args)
-    # puts "Invoked with..." + command_line_args.to_s
+    puts "Invoked with..." + command_line_args.to_s
     Gtk.gtk_init(0, nil);
     top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
     # area = Gtk.gtk_drawing_area_new();
@@ -449,10 +477,10 @@ def run(command_line_args)
     url = "http://google.com";
 
     settings[:single_process] = true
-    settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
+    # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
-    settings[:cache_path] = CefLifeCycle.cefString(".")
+    settings[:cache_path] = CefLifeCycle.cefString("./cache-mojo")
     settings[:user_agent] = CefLifeCycle.cefString("Chrome")
     settings[:product_version] = CefLifeCycle.cefString("12212")
     settings[:locale] = CefLifeCycle.cefString("en-US")
@@ -460,7 +488,7 @@ def run(command_line_args)
     # settings[:log_severity] = CefLifeCycle::LogSeverity[:LOGSEVERITY_DEFAULT],
     settings[:release_dcheck_enabled] = false
     settings[:javascript_flags] = CefLifeCycle.cefString("")
-    settings[:auto_detect_proxy_settings_enabled] = true
+    settings[:auto_detect_proxy_settings_enabled] = false
     settings[:pack_loading_disabled] = false
     # settings[:remote_debugging_port] = 12121
     settings[:uncaught_exception_stack_size] = 200
@@ -518,9 +546,9 @@ def browserSettings
   browser_settings[:user_style_sheet_enabled] = false
   browser_settings[:user_style_sheet_location] = CefLifeCycle.cefString(".")
   browser_settings[:author_and_user_styles_disabled] = true
-  browser_settings[:local_storage_disabled] = true
-  browser_settings[:databases_disabled] = true
-  browser_settings[:application_cache_disabled] = true
+  browser_settings[:local_storage_disabled] = false
+  browser_settings[:databases_disabled] = false
+  browser_settings[:application_cache_disabled] = false
   browser_settings[:webgl_disabled] = false
   browser_settings[:accelerated_compositing_disabled] = false
   browser_settings[:accelerated_layers_disabled] = false
