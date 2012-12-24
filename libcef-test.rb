@@ -401,34 +401,9 @@ module CefLifeCycle
           :_cef_request_handler_t, :pointer,
           :on_process_message_received, :pointer
   end
-end
 
-def run(command_line_args)
-    puts "Invoked with..." + command_line_args.to_s
-    Gtk.gtk_init(0, nil);
-    top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
-    # area = Gtk.gtk_drawing_area_new();
-    # Gtk.gtk_container_add(top, area);
-    # mainArgs = CefLifeCycle::MainArgs.new;
-    # mainArgs[:argc] = 0;
-    # mainArgs[:argv] = LibC.malloc(0);
-    settings = CefLifeCycle::CefSettings.new;
-
-    mainArgs = CefLifeCycle::MainArgs.new;
-    args = [];
-    command_line_args.each do |a|
-      args << FFI::MemoryPointer.from_string(a);
-    end
-    args << nil;
-    # puts(args);
-    argv = FFI::MemoryPointer.new(:pointer, args.length)
-        args.each_with_index do |p, i|
-        argv[i].put_pointer(0, p);
-    end
-    mainArgs[:argc] = command_line_args.length;
-    mainArgs[:argv] = argv;
-    client = CefLifeCycle::CefClient.new;
-
+  def self.cefClient
+    client = CefLifeCycle::CefClient.new
     client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
       return CefKeyboardHandler.new
     end
@@ -465,39 +440,46 @@ def run(command_line_args)
     client[:_cef_life_span_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
       return CefLifeSpanHandler.new
     end
+    client[:on_process_message_received] = 
+      FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
+      # TODO: Implement _cef_process_message_t
+      # TODO: Look at cef_process_id_t
+      puts "Received a message..."
+      42
+    end
+    client
+  end
+end
 
-    browser_settings = browserSettings();
-    window_info = CefLifeCycle::WindowInfo.new;
+def run(command_line_args)
+    puts "Invoked with..." + command_line_args.to_s
+    Gtk.gtk_init(0, nil);
+    top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
     vbox = Gtk.gtk_vbox_new(false, 0);
-    # window_info[:parent_widget] = top;
+    window_info = CefLifeCycle::WindowInfo.new;
     window_info[:parent_widget] = vbox;
 
-    locales_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/locales";
-    resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
+    mainArgs = CefLifeCycle::MainArgs.new;
+    args = [];
+    command_line_args.each do |a|
+      args << FFI::MemoryPointer.from_string(a);
+    end
+    args << nil;
+    argv = FFI::MemoryPointer.new(:pointer, args.length)
+        args.each_with_index do |p, i|
+        argv[i].put_pointer(0, p);
+    end
+    mainArgs[:argc] = command_line_args.length;
+    mainArgs[:argv] = argv;
+
+    settings = cefSettings();
+    browser_settings = browserSettings();
     url = "http://google.com";
 
-    settings[:single_process] = true
-    # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
-    settings[:multi_threaded_message_loop] = false
-    settings[:command_line_args_disabled] = false
-    settings[:cache_path] = CefLifeCycle.cefString("./cache-mojo")
-    settings[:user_agent] = CefLifeCycle.cefString("Chrome")
-    settings[:product_version] = CefLifeCycle.cefString("12212")
-    settings[:locale] = CefLifeCycle.cefString("en-US")
-    settings[:log_file] = CefLifeCycle.cefString("./chromium.log")
-    # settings[:log_severity] = CefLifeCycle::LogSeverity[:LOGSEVERITY_DEFAULT],
-    settings[:release_dcheck_enabled] = false
-    settings[:javascript_flags] = CefLifeCycle.cefString("")
-    settings[:auto_detect_proxy_settings_enabled] = false
-    settings[:pack_loading_disabled] = false
-    # settings[:remote_debugging_port] = 12121
-    settings[:uncaught_exception_stack_size] = 200
-    settings[:context_safety_implementation] = 0
-    settings[:locales_dir_path] = CefLifeCycle.cefString(locales_dir_path);
-    settings[:resources_dir_path] = CefLifeCycle.cefString(resources_dir_path);
-
+    client = CefLifeCycle.cefClient;
     app = CefLifeCycle.cefApp;
     exitCode = CefLifeCycle.cef_execute_process(mainArgs, app);
+    puts "Exit Code = " + exitCode.to_s
     return exitCode if exitCode >= 0
     result = CefLifeCycle.cef_initialize(mainArgs, settings, app);
 
@@ -509,6 +491,33 @@ def run(command_line_args)
     Gtk.gtk_main();
     CefLifeCycle.cef_run_message_loop();
     CefLifeCycle.cef_shutdown();
+end
+
+def cefSettings
+    locales_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/locales";
+    resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
+
+    settings = CefLifeCycle::CefSettings.new
+    settings[:single_process] = false
+    # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
+    settings[:multi_threaded_message_loop] = false
+    settings[:command_line_args_disabled] = false
+    settings[:cache_path] = CefLifeCycle.cefString("./cache-mojo")
+    settings[:user_agent] = CefLifeCycle.cefString("Chrome")
+    settings[:product_version] = CefLifeCycle.cefString("12212")
+    settings[:locale] = CefLifeCycle.cefString("en-US")
+    settings[:log_file] = CefLifeCycle.cefString("./chromium.log")
+    # settings[:log_severity] = 1,
+    settings[:release_dcheck_enabled] = false
+    settings[:javascript_flags] = CefLifeCycle.cefString("")
+    settings[:auto_detect_proxy_settings_enabled] = false
+    settings[:pack_loading_disabled] = false
+    # settings[:remote_debugging_port] = 12121
+    settings[:uncaught_exception_stack_size] = 200
+    settings[:context_safety_implementation] = 0
+    settings[:locales_dir_path] = CefLifeCycle.cefString(locales_dir_path);
+    settings[:resources_dir_path] = CefLifeCycle.cefString(resources_dir_path);
+    settings
 end
 
 def browserSettings
