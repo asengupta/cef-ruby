@@ -279,7 +279,7 @@ module CefLifeCycle
     end
 
   def self.cefBrowserProcessHandler
-    handler = CefLifeCycle.CefBrowserProcessHandler.new
+    handler = CefLifeCycle::CefBrowserProcessHandler.new
     handler[:base] = self.cefBase
     handler[:_cef_proxy_handler_t] = @getCefProxyHandler
     handler[:on_context_initialized] = @onContextInitialised
