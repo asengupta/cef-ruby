@@ -273,7 +273,7 @@ module CefLifeCycle
   end
 
 
-  def self.CefRenderProcessHandler
+  def self.cefRenderProcessHandler
     handler = CefLifeCycle::CefRenderProcessHandler.new
     handler[:on_render_thread_created] = 
     FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
@@ -352,7 +352,7 @@ module CefLifeCycle
     app[:_cef_render_process_handler_t] = 
     FFI::Function.new(:void, [:pointer]) do |me|
       puts "In getting render process handler...boooya!!"
-      CefRenderProcessHandler.new
+      self.cefRenderProcessHandler
     end
     app
   end
@@ -645,4 +645,4 @@ end
 
 
 
-run(["Soething"]);
+# run(["Soething"]);
