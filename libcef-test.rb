@@ -27,6 +27,11 @@ module Gtk
     :GTK_WINDOW_POPUP
   ];
 
+  enum :ProcessID, [
+    :PID_BROWSER,
+    :PID_RENDERER
+  ];
+
   attach_function(:gtk_window_new, [:GtkWindowType], :pointer);
   attach_function(:gtk_drawing_area_new, [], :pointer);
   attach_function(:gtk_init, [:int, :pointer], :void);
@@ -48,6 +53,15 @@ module CefLifeCycle
   attach_function(:cef_run_message_loop, [], :void);
   attach_function(:cef_shutdown, [], :void);
   attach_function(:cef_execute_process, [:pointer, :pointer], :int);
+
+  enum :NavigationType, [
+    :NAVIGATION_LINK_CLICKED, 0,
+    :NAVIGATION_FORM_SUBMITTED,
+    :NAVIGATION_BACK_FORWARD,
+    :NAVIGATION_RELOAD,
+    :NAVIGATION_FORM_RESUBMITTED,
+    :NAVIGATION_OTHER
+  ];
 
   LogSeverity = enum :LogSeverity, [
   :LOGSEVERITY_DEFAULT,
@@ -258,6 +272,62 @@ module CefLifeCycle
           :on_process_message_received, :pointer
   end
 
+
+  def self.CefRenderProcessHandler
+    handler = CefLifeCycle::CefRenderProcessHandler.new
+    handler[:on_render_thread_created] = 
+    FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_web_kit_initialized] = 
+    FFI::Function.new(:void, [:pointer]) do |me|
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_browser_created] = 
+    FFI::Function.new(:void, [:pointer, :pointer]) do |me, browser|
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_browser_destroyed] = 
+    FFI::Function.new(:void, [:pointer, :pointer]) do |me, browser|
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_before_navigation] = 
+    FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer, :NavigationType, :int]) do |me, browser, frame, request, navigation_type, is_redirect|
+      # TODO: Declare _cef_request_t
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_context_created] = 
+    FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context|
+      # TODO: Declare _cef_v8context_t
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_context_released] = 
+    FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context|
+      # TODO: Declare _cef_v8context_t
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_uncaught_exception] = 
+    FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context, v8_exception, v8_stacktrace|
+      # TODO: Declare _cef_v8exception_t
+      # TODO: Declare _cef_v8stack_trace_t
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_focused_node_changed] = 
+    FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, dom_node|
+      # TODO: Declare _cef_domnode_t
+      puts "In before command line processing...boooya!!"
+    end
+    handler[:on_process_message_received] = 
+      FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
+      # TODO: Implement _cef_process_message_t
+      # TODO: Look at cef_process_id_t
+      puts "Received a message..."
+      42
+    end
+
+    handler
+  end
+
   def self.cefApp
     app = CefApp.new
     app[:on_before_command_line_processing] = 
@@ -453,11 +523,6 @@ end
 
 def run(command_line_args)
     puts "Invoked with..." + command_line_args.to_s
-    Gtk.gtk_init(0, nil);
-    top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
-    vbox = Gtk.gtk_vbox_new(false, 0);
-    window_info = CefLifeCycle::WindowInfo.new;
-    window_info[:parent_widget] = vbox;
 
     mainArgs = CefLifeCycle::MainArgs.new;
     args = [];
@@ -472,16 +537,26 @@ def run(command_line_args)
     mainArgs[:argc] = command_line_args.length;
     mainArgs[:argv] = argv;
 
+    app = CefLifeCycle.cefApp;
+    puts "About to execute..."
+    exitCode = CefLifeCycle.cef_execute_process(mainArgs, app);
+    puts "Exit Code = " + exitCode.to_s
+    return exitCode if exitCode >= 0
+
+    Gtk.gtk_init(0, nil);
+    top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
+    vbox = Gtk.gtk_vbox_new(false, 0);
+    window_info = CefLifeCycle::WindowInfo.new;
+    window_info[:parent_widget] = vbox;
+
+
     settings = cefSettings();
     browser_settings = browserSettings();
     url = "http://google.com";
 
     client = CefLifeCycle.cefClient;
-    app = CefLifeCycle.cefApp;
-    exitCode = CefLifeCycle.cef_execute_process(mainArgs, app);
-    puts "Exit Code = " + exitCode.to_s
-    return exitCode if exitCode >= 0
     result = CefLifeCycle.cef_initialize(mainArgs, settings, app);
+    CefLifeCycle.cef_run_message_loop();
 
     puts("CEF Initialisation: " + result.to_s);
     worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
@@ -489,7 +564,6 @@ def run(command_line_args)
     Gtk.gtk_container_add(top, vbox);
     Gtk.gtk_widget_show(top);
     Gtk.gtk_main();
-    CefLifeCycle.cef_run_message_loop();
     CefLifeCycle.cef_shutdown();
 end
 
@@ -571,4 +645,4 @@ end
 
 
 
-# run(["Soething"]);
+run(["Soething"]);
