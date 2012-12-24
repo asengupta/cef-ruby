@@ -197,26 +197,26 @@ module CefLifeCycle
           :prepend_wrapper, :pointer
   end
 
-  class CefResourceBundleHandler
+  class CefResourceBundleHandler < FFI::Struct
     layout :base, CefBase,
           :get_localized_string, :pointer,
           :get_data_resource, :pointer
   end
 
-  class CefProxyHandler
+  class CefProxyHandler < FFI::Struct
     layout :base, CefBase,
           :get_proxy_for_url, :pointer
   end
 
-  class CefBrowserProcessHandler
+  class CefBrowserProcessHandler < FFI::Struct
     layout :base, CefBase,
-          :get_proxy_handler, :pointer,
+          :_cef_proxy_handler_t, :pointer,
           :on_context_initialized, :pointer,
           :on_before_child_process_launch, :pointer,
           :on_render_process_thread_created, :pointer
   end
 
-  class CefRenderProcessHandler
+  class CefRenderProcessHandler < FFI::Struct
     layout :base, CefBase,
           :on_render_thread_created, :pointer,
           :on_web_kit_initialized, :pointer,
@@ -240,17 +240,18 @@ module CefLifeCycle
     FFI::Function.new(:void, [:pointer, :pointer]) do |me, registrar|
       puts "In registering custom schemes...boooya!!"
     end
-    app[:get_resource_bundle_handler] = 
+
+    app[:_cef_resource_bundle_handler_t] = 
     FFI::Function.new(:void, [:pointer]) do |me|
       puts "In getting resource bundler...boooya!!"
       CefResourceBundleHandler.new
     end
-    app[:get_browser_process_handler] = 
+    app[:_cef_browser_process_handler_t] = 
     FFI::Function.new(:void, [:pointer]) do |me|
       puts "In getting browser process handler...boooya!!"
       CefBrowserProcessHandler.new
     end
-    app[:get_render_process_handler] = 
+    app[:_cef_render_process_handler_t] = 
     FFI::Function.new(:void, [:pointer]) do |me|
       puts "In getting render process handler...boooya!!"
       CefBrowserProcessHandler.new
@@ -344,11 +345,11 @@ module CefLifeCycle
   class CefRequestHandler < FFI::Struct
     layout :base, CefBase,
           :on_before_resource_load, :pointer,
-          :get_resource_handler, :pointer,
+          :_cef_resource_handler_t, :pointer,
           :on_resource_redirect, :pointer,
           :get_auth_credentials, :pointer,
           :on_quota_request, :pointer,
-          :get_cookie_manager, :pointer,
+          :_cef_cookie_manager_t, :pointer,
           :on_protocol_execution, :pointer,
           :on_before_plugin_load, :pointer
   end
@@ -447,7 +448,7 @@ def run(command_line_args)
     resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
     url = "http://google.com";
 
-    settings[:single_process] = false
+    settings[:single_process] = true
     settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
@@ -533,4 +534,4 @@ end
 
 
 
-# run(["Soething"]);
+run(["Soething"]);
