@@ -105,7 +105,7 @@ TOUCH = exit >
 preload = 
 
 libpath = . $(libdir) /home/avishek/.rvm/usr/lib
-LIBPATH =  -L. -L$(libdir) -Wl,-R$(libdir) -L/home/avishek/.rvm/usr/lib -Wl,-R/home/avishek/.rvm/usr/lib
+LIBPATH =  -L. -L$(libdir) -Wl,-R$(libdir) -L/home/avishek/.rvm/usr/lib -Wl,-R/home/avishek/.rvm/usr/lib -L/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target
 DEFFILE = 
 
 CLEANFILES = mkmf.log
@@ -115,7 +115,7 @@ DISTCLEANDIRS =
 extout = 
 extout_prefix = 
 target_prefix = 
-LOCAL_LIBS = 
+LOCAL_LIBS = -l:libcef.so
 LIBS = $(LIBRUBYARG_SHARED)  -lpthread -lrt -ldl -lcrypt -lm   -lc
 SRCS = embed.c
 OBJS = embed.o

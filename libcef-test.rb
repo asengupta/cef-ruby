@@ -78,6 +78,28 @@ module CefLifeCycle
             :get_refct, :pointer;
   end
 
+  @addReference = FFI::Function.new(:int, [:pointer]) do |me|
+    puts "Adding a reference..."
+  end
+
+  @releaseReference = FFI::Function.new(:int, [:pointer]) do |me|
+    puts "Removing a reference..."
+  end
+  
+  @getReferenceCount = FFI::Function.new(:int, [:pointer]) do |me|
+    puts "Reference count is hardcoded..."
+    3
+  end
+
+  def self.cefBase
+    base = CefBase.new
+    base[:size] = 1000 # That ought to satisfy them
+    base[:add_ref] = @addReference
+    base[:release] = @releaseReference
+    base[:get_refct] = @getReferenceCount
+    base
+  end
+
   class CefString < FFI::Struct
   	layout :str, :pointer,
   		   :length, :int,
@@ -175,7 +197,7 @@ module CefLifeCycle
   end
 
   class CefApp < FFI::Struct
-      layout :base, CefBase,
+      layout :base, CefBase.ptr,
       :on_before_command_line_processing, :pointer,
       :on_register_custom_schemes, :pointer,
       :_cef_resource_bundle_handler_t, :pointer,
@@ -187,7 +209,7 @@ module CefLifeCycle
   end
 
   class CefCommandLine
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :is_valid, :pointer,
           :is_read_only, :pointer,
           :copy, :pointer,
@@ -211,18 +233,18 @@ module CefLifeCycle
   end
 
   class CefResourceBundleHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :get_localized_string, :pointer,
           :get_data_resource, :pointer
   end
 
   class CefProxyHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :get_proxy_for_url, :pointer
   end
 
   class CefBrowserProcessHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :_cef_proxy_handler_t, :pointer,
           :on_context_initialized, :pointer,
           :on_before_child_process_launch, :pointer,
@@ -235,6 +257,7 @@ module CefLifeCycle
     end
   def self.cefProxyHandler
     handler = CefLifeCycle::CefProxyHandler.new
+    handler[:base] = self.cefBase
     handler[:get_proxy_for_url] = @getProxyForUrl
     handler
   end
@@ -257,6 +280,7 @@ module CefLifeCycle
 
   def self.cefBrowserProcessHandler
     handler = CefLifeCycle.CefBrowserProcessHandler.new
+    handler[:base] = self.cefBase
     handler[:_cef_proxy_handler_t] = @getCefProxyHandler
     handler[:on_context_initialized] = @onContextInitialised
     handler[:on_before_child_process_launch] = @onBeforeChildProcessLaunch
@@ -265,7 +289,7 @@ module CefLifeCycle
   end
 
   class CefRenderProcessHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_render_thread_created, :pointer,
           :on_web_kit_initialized, :pointer,
           :on_browser_created, :pointer,
@@ -329,6 +353,7 @@ module CefLifeCycle
 
   def self.cefRenderProcessHandler
     handler = CefLifeCycle::CefRenderProcessHandler.new
+    handler[:base] = self.cefBase
     handler[:on_render_thread_created] = @onRenderThreadCreated
     handler[:on_web_kit_initialized] = @onWebKitInitialised
     handler[:on_browser_created] = @onBrowserCreated
@@ -354,7 +379,9 @@ module CefLifeCycle
 
   @getCefResourceBundleHandler =     FFI::Function.new(:void, [:pointer]) do |me|
       puts "In getting resource bundler...boooya!!"
-      CefResourceBundleHandler.new
+      handler = CefResourceBundleHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
 
   @getCefBrowserProcessHandler =     FFI::Function.new(:void, [:pointer]) do |me|
@@ -369,6 +396,8 @@ module CefLifeCycle
 
   def self.cefApp
     app = CefApp.new
+    app[:base] = self.cefBase
+
     app[:on_before_command_line_processing] = @onBeforeCommandLineProcessing
     app[:on_register_custom_schemes] = @onRegisterCustomSchemes
     app[:_cef_resource_bundle_handler_t] = @getCefResourceBundleHandler
@@ -378,19 +407,19 @@ module CefLifeCycle
   end
 
   class CefContextMenuHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_before_context_menu, :pointer,
           :on_context_menu_command, :pointer,
           :on_context_menu_dismissed, :pointer
   end
 
   class CefDialogHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_file_dialog, :pointer
   end
 
   class CefDisplayHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_loading_state_change, :pointer,
           :on_address_change, :pointer,
           :on_title_change, :pointer,
@@ -400,39 +429,39 @@ module CefLifeCycle
   end
 
   class CefDownloadHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_before_download, :pointer,
           :on_download_updated, :pointer
   end
 
   class CefFocusHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_take_focus, :pointer,
           :on_set_focus, :pointer,
           :on_got_focus, :pointer
   end
 
   class CefGeolocationHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_request_geolocation_permission, :pointer,
           :on_cancel_geolocation_permission, :pointer
   end
 
   class CefJavascriptDialogHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_jsdialog, :pointer,
           :on_before_unload_dialog, :pointer,
           :on_reset_dialog_state, :pointer
   end
 
   class CefKeyboardHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_pre_key_event, :pointer,
           :on_key_event, :pointer
   end
 
   class CefLifeSpanHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_before_popup, :pointer,
           :on_after_created, :pointer,
           :run_modal, :pointer,
@@ -441,7 +470,7 @@ module CefLifeCycle
   end
 
   class CefLoadHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_load_start, :pointer,
           :on_load_end, :pointer,
           :on_load_error, :pointer,
@@ -450,7 +479,7 @@ module CefLifeCycle
   end
 
   class CefRenderHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :get_root_screen_rect, :pointer,
           :get_view_rect, :pointer,
           :get_screen_point, :pointer,
@@ -461,7 +490,7 @@ module CefLifeCycle
   end
 
   class CefRequestHandler < FFI::Struct
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :on_before_resource_load, :pointer,
           :_cef_resource_handler_t, :pointer,
           :on_resource_redirect, :pointer,
@@ -476,7 +505,7 @@ module CefLifeCycle
   end
 
   class CefClient
-    layout :base, CefBase,
+    layout :base, CefBase.ptr,
           :_cef_context_menu_handler_t, :pointer,
           :_cef_dialog_handler_t, :pointer,
           :_cef_display_handler_t, :pointer,
@@ -494,41 +523,67 @@ module CefLifeCycle
 
   def self.cefClient
     client = CefLifeCycle::CefClient.new
+    client[:base] = self.cefBase
+
     client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefKeyboardHandler.new
+      handler = CefKeyboardHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_dialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefDialogHandler.new
+      handler = CefDialogHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_context_menu_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefContextMenuHandler.new
+      handler = CefContextMenuHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_request_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefRequestHandler.new
+      handler = CefRequestHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_render_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefRenderHandler.new
+      handler = CefRenderHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_load_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefLoadHandler.new
+      handler = CefLoadHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefKeyboardHandler.new
+      handler = CefKeyboardHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_jsdialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefJavascriptDialogHandler.new
+      handler = CefJavascriptDialogHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_geolocation_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefGeolocationHandler.new
+      handler = CefGeolocationHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_focus_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefFocusHandler.new
+      handler = CefFocusHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_download_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefDownloadHandler.new
+      handler = CefDownloadHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:_cef_life_span_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      return CefLifeSpanHandler.new
+      handler = CefLifeSpanHandler.new
+      handler[:base] = self.cefBase
+      handler
     end
     client[:on_process_message_received] = 
       FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
@@ -545,6 +600,7 @@ def run(command_line_args)
     puts "Invoked with..." + command_line_args.to_s
 
     mainArgs = CefLifeCycle::MainArgs.new;
+
     args = [];
     command_line_args.each do |a|
       args << FFI::MemoryPointer.from_string(a);
@@ -567,6 +623,7 @@ def run(command_line_args)
     top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
     vbox = Gtk.gtk_vbox_new(false, 0);
     window_info = CefLifeCycle::WindowInfo.new;
+
     window_info[:parent_widget] = vbox;
 
 
@@ -592,7 +649,9 @@ def cefSettings
     resources_dir_path = "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug";
 
     settings = CefLifeCycle::CefSettings.new
-    settings[:single_process] = false
+    settings[:size] = 1000
+
+    settings[:single_process] = true
     # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
@@ -616,6 +675,8 @@ end
 
 def browserSettings
   browser_settings = CefLifeCycle::BrowserSettings.new;
+  browser_settings[:size] = 1000
+
   browser_settings[:standard_font_family] = CefLifeCycle.cefString("Arial")
   browser_settings[:fixed_font_family] = CefLifeCycle.cefString("Arial")
   browser_settings[:sans_serif_font_family] = CefLifeCycle.cefString("Arial")
