@@ -378,18 +378,18 @@ module CefLifeCycle
 
   class CefClient
     layout :base, CefBase,
-          :_cef_context_menu_handler_t, :pointer,
-          :_cef_dialog_handler_t, :pointer,
-          :_cef_display_handler_t, :pointer,
-          :_cef_download_handler_t, :pointer,
-          :_cef_focus_handler_t, :pointer,
-          :_cef_geolocation_handler_t, :pointer,
-          :_cef_jsdialog_handler_t, :pointer,
-          :_cef_keyboard_handler_t, :pointer,
-          :_cef_life_span_handler_t, :pointer,
-          :_cef_load_handler_t, :pointer,
-          :_cef_render_handler_t, :pointer,
-          :_cef_request_handler_t, :pointer,
+          :get_context_menu_handler, :pointer,
+          :get_dialog_handler, :pointer,
+          :get_display_handler, :pointer,
+          :get_download_handler, :pointer,
+          :get_focus_handler, :pointer,
+          :get_geolocation_handler, :pointer,
+          :get_jsdialog_handler, :pointer,
+          :get_keyboard_handler, :pointer,
+          :get_life_span_handler, :pointer,
+          :get_load_handler, :pointer,
+          :get_render_handler, :pointer,
+          :get_request_handler, :pointer,
           :on_process_message_received, :pointer
   end
 
@@ -544,76 +544,87 @@ module CefLifeCycle
     app
   end
 
+  def self.cefLifespanHandler
+      handler = CefLifeSpanHandler.new
+      handler[:base] = self.cefBase
+      handler
+  end
+
+  @nonGC[:lifespanHandler] = self.cefLifespanHandler
 
   def self.cefClient
     client = CefLifeCycle::CefClient.new
     client[:base] = self.cefBase
 
-    client[:_cef_keyboard_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_display_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
+      puts "Getting keyboard handler..."
+      handler = CefDisplayHandler.new
+      handler[:base] = self.cefBase
+      handler
+    end
+    client[:get_keyboard_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting keyboard handler..."
       handler = CefKeyboardHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_dialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_dialog_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting dialog handler..."
       handler = CefDialogHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_context_menu_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_context_menu_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting context menu handler..."
       handler = CefContextMenuHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_request_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_request_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting request handler..."
       handler = CefRequestHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_render_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_render_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting render handler..."
       handler = CefRenderHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_load_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_load_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting load handler..."
       handler = CefLoadHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_jsdialog_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_jsdialog_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting JS Dialog handler..."
       handler = CefJavascriptDialogHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_geolocation_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_geolocation_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting geolocation handler..."
       handler = CefGeolocationHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_focus_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_focus_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting focus handler..."
       handler = CefFocusHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_download_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_download_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
       puts "Getting download handler..."
       handler = CefDownloadHandler.new
       handler[:base] = self.cefBase
       handler
     end
-    client[:_cef_life_span_handler_t] = FFI::Function.new(:pointer, [:pointer]) do |client|
+    client[:get_life_span_handler] = FFI::Function.new(CefLifeSpanHandler.ptr, [:pointer]) do |client|
       puts "Getting lifespan handler..."
-      handler = CefLifeSpanHandler.new
-      handler[:base] = self.cefBase
-      handler
+      @nonGC[:lifespanHandler]
     end
     client[:on_process_message_received] = 
       FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
