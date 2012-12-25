@@ -392,6 +392,7 @@ module CefLifeCycle
       #   begin
       base = registrar[:release]
       puts "Resolved release to: " + base.to_s
+      base.call(registrar)
       #   rescue => e
       #     puts "Got an error..."
       #     puts e
