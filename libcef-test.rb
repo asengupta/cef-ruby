@@ -202,9 +202,9 @@ module CefLifeCycle
       layout :base, CefBase,
       :on_before_command_line_processing, :pointer,
       :on_register_custom_schemes, :pointer,
-      :_cef_resource_bundle_handler_t, :pointer,
-      :_cef_browser_process_handler_t, :pointer,
-      :_cef_render_process_handler_t, :pointer
+      :get_resource_bundle_handler, :pointer,
+      :get_browser_process_handler, :pointer,
+      :get_render_process_handler, :pointer
   end
 
   class CefCommandLine < FFI::Struct
@@ -247,7 +247,7 @@ module CefLifeCycle
 
   class CefBrowserProcessHandler < FFI::Struct
     layout :base, CefBase,
-          :_cef_proxy_handler_t, :pointer,
+          :get_proxy_handler, :pointer,
           :on_context_initialized, :pointer,
           :on_before_child_process_launch, :pointer,
           :on_render_process_thread_created, :pointer
@@ -283,7 +283,7 @@ module CefLifeCycle
   def self.cefBrowserProcessHandler
     handler = CefLifeCycle::CefBrowserProcessHandler.new
     handler[:base] = self.cefBase
-    handler[:_cef_proxy_handler_t] = @getCefProxyHandler
+    handler[:get_proxy_handler] = @getCefProxyHandler
     handler[:on_context_initialized] = @onContextInitialised
     handler[:on_before_child_process_launch] = @onBeforeChildProcessLaunch
     handler[:on_render_process_thread_created] = @onRenderProcessThreadCreated
@@ -384,40 +384,26 @@ module CefLifeCycle
 
   @onRegisterCustomSchemes =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, registrar|
       puts "Registering schemes like it's 1857..." + registrar.address.to_s + "[" + registrar.to_s + "]"
-      # puts "Backtrace:"
-      # puts caller
-      # if registrar.address != 0
       registrar = CefBase.new(registrar)
       puts "Translated it to " + registrar.to_s
-      #   begin
       base = registrar[:release]
       puts "Resolved release to: " + base.to_s
       base.call(registrar)
-      #   rescue => e
-      #     puts "Got an error..."
-      #     puts e
-      #   end
-      # end
-      # release = FFI::Function.new(:void, [], registrar[:base][:release])
-      # registrar[:base][:release]
-      # puts "Base is..." + base.to_s
-      # end
-      # release.call
     end
 
-  @getCefResourceBundleHandler =     FFI::Function.new(:void, [:pointer]) do |me|
+  @getCefResourceBundleHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
       puts "In getting resource bundler...boooya!!"
       handler = CefResourceBundleHandler.new
       handler[:base] = self.cefBase
       handler
     end
 
-  @getCefBrowserProcessHandler =     FFI::Function.new(:void, [:pointer]) do |me|
+  @getCefBrowserProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
       puts "In getting browser process handler...boooya!!"
       self.cefBrowserProcessHandler
     end
 
-  @getCefRenderProcessHandler =     FFI::Function.new(:void, [:pointer]) do |me|
+  @getCefRenderProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
       puts "In getting render process handler...boooya!!"
       self.cefRenderProcessHandler
     end
@@ -428,9 +414,9 @@ module CefLifeCycle
 
     app[:on_before_command_line_processing] = @onBeforeCommandLineProcessing
     app[:on_register_custom_schemes] = @onRegisterCustomSchemes
-    app[:_cef_resource_bundle_handler_t] = @getCefResourceBundleHandler
-    app[:_cef_browser_process_handler_t] = @getCefBrowserProcessHandler
-    app[:_cef_render_process_handler_t] = @getCefRenderProcessHandler
+    app[:get_resource_bundle_handler] = @getCefResourceBundleHandler
+    app[:get_browser_process_handler] = @getCefBrowserProcessHandler
+    app[:get_render_process_handler] = @getCefRenderProcessHandler
     app
   end
 
@@ -679,7 +665,7 @@ def cefSettings
     settings = CefLifeCycle::CefSettings.new
     settings[:size] = 1000
 
-    settings[:single_process] = true
+    settings[:single_process] = false
     # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
