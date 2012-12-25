@@ -663,7 +663,6 @@ def run(command_line_args)
 
     client = CefLifeCycle.cefClient;
     result = CefLifeCycle.cef_initialize(mainArgs, settings, app);
-    CefLifeCycle.cef_run_message_loop();
 
     puts("CEF Initialisation: " + result.to_s);
     worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
@@ -671,6 +670,7 @@ def run(command_line_args)
     Gtk.gtk_container_add(top, vbox);
     Gtk.gtk_widget_show(top);
     Gtk.gtk_main();
+    CefLifeCycle.cef_run_message_loop();
     CefLifeCycle.cef_shutdown();
 end
 
