@@ -199,7 +199,7 @@ module CefLifeCycle
   end
 
   class CefApp < FFI::Struct
-      layout :base, CefBase.ptr,
+      layout :base, CefBase,
       :on_before_command_line_processing, :pointer,
       :on_register_custom_schemes, :pointer,
       :_cef_resource_bundle_handler_t, :pointer,
@@ -211,7 +211,7 @@ module CefLifeCycle
   end
 
   class CefCommandLine
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :is_valid, :pointer,
           :is_read_only, :pointer,
           :copy, :pointer,
@@ -235,18 +235,18 @@ module CefLifeCycle
   end
 
   class CefResourceBundleHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :get_localized_string, :pointer,
           :get_data_resource, :pointer
   end
 
   class CefProxyHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :get_proxy_for_url, :pointer
   end
 
   class CefBrowserProcessHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :_cef_proxy_handler_t, :pointer,
           :on_context_initialized, :pointer,
           :on_before_child_process_launch, :pointer,
@@ -291,7 +291,7 @@ module CefLifeCycle
   end
 
   class CefRenderProcessHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_render_thread_created, :pointer,
           :on_web_kit_initialized, :pointer,
           :on_browser_created, :pointer,
@@ -370,9 +370,12 @@ module CefLifeCycle
     handler
   end
 
+  callback :add_custom_scheme_signature, [:pointer, :pointer, :int, :int, :int], :int
+
+
   class CefSchemeRegistrar < FFI::Struct
-    layout :base, CefBase.ptr,
-          :add_custom_scheme, :pointer
+    layout :base, CefBase,
+          :add_custom_scheme, :add_custom_scheme_signature
   end
 
   @onBeforeCommandLineProcessing =     FFI::Function.new(:void, [:pointer, :pointer, :pointer]) do |me, process_type, command_line|
@@ -381,11 +384,19 @@ module CefLifeCycle
 
   @onRegisterCustomSchemes =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, registrar|
       puts "Registering schemes like it's 1857..." + registrar.address.to_s + "[" + registrar.to_s + "]"
-      if registrar.address != 0
-        registrar = CefSchemeRegistrar.new(registrar)
-        puts "Translated it to " + registrar.to_s
-        # base = CefBase.new(registrar[:base])
-      end
+      # puts "Backtrace:"
+      # puts caller
+      # if registrar.address != 0
+      registrar = CefBase.new(registrar)
+      puts "Translated it to " + registrar.to_s
+      #   begin
+      base = registrar[:release]
+      puts "Resolved release to: " + base.to_s
+      #   rescue => e
+      #     puts "Got an error..."
+      #     puts e
+      #   end
+      # end
       # release = FFI::Function.new(:void, [], registrar[:base][:release])
       # registrar[:base][:release]
       # puts "Base is..." + base.to_s
@@ -423,19 +434,19 @@ module CefLifeCycle
   end
 
   class CefContextMenuHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_before_context_menu, :pointer,
           :on_context_menu_command, :pointer,
           :on_context_menu_dismissed, :pointer
   end
 
   class CefDialogHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_file_dialog, :pointer
   end
 
   class CefDisplayHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_loading_state_change, :pointer,
           :on_address_change, :pointer,
           :on_title_change, :pointer,
@@ -445,39 +456,39 @@ module CefLifeCycle
   end
 
   class CefDownloadHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_before_download, :pointer,
           :on_download_updated, :pointer
   end
 
   class CefFocusHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_take_focus, :pointer,
           :on_set_focus, :pointer,
           :on_got_focus, :pointer
   end
 
   class CefGeolocationHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_request_geolocation_permission, :pointer,
           :on_cancel_geolocation_permission, :pointer
   end
 
   class CefJavascriptDialogHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_jsdialog, :pointer,
           :on_before_unload_dialog, :pointer,
           :on_reset_dialog_state, :pointer
   end
 
   class CefKeyboardHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_pre_key_event, :pointer,
           :on_key_event, :pointer
   end
 
   class CefLifeSpanHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_before_popup, :pointer,
           :on_after_created, :pointer,
           :run_modal, :pointer,
@@ -486,7 +497,7 @@ module CefLifeCycle
   end
 
   class CefLoadHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_load_start, :pointer,
           :on_load_end, :pointer,
           :on_load_error, :pointer,
@@ -495,7 +506,7 @@ module CefLifeCycle
   end
 
   class CefRenderHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :get_root_screen_rect, :pointer,
           :get_view_rect, :pointer,
           :get_screen_point, :pointer,
@@ -506,7 +517,7 @@ module CefLifeCycle
   end
 
   class CefRequestHandler < FFI::Struct
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :on_before_resource_load, :pointer,
           :_cef_resource_handler_t, :pointer,
           :on_resource_redirect, :pointer,
@@ -521,7 +532,7 @@ module CefLifeCycle
   end
 
   class CefClient
-    layout :base, CefBase.ptr,
+    layout :base, CefBase,
           :_cef_context_menu_handler_t, :pointer,
           :_cef_dialog_handler_t, :pointer,
           :_cef_display_handler_t, :pointer,
