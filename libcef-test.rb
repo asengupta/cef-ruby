@@ -44,6 +44,8 @@ end
 
 module CefLifeCycle
   extend FFI::Library
+  @nonGC = {}
+
   ffi_lib [FFI::CURRENT_PROCESS, "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so"];
   attach_function(:cef_do_message_loop_work, [], :void);
   attach_function(:cef_browser_host_create_browser_sync, [:pointer, :pointer, :pointer, :pointer], :pointer);
@@ -426,6 +428,7 @@ module CefLifeCycle
     puts "Created new BrowserHandler: " + handler.to_s
     handler
   end
+  @nonGC[:browserProcessHandler] = self.cefBrowserProcessHandler
 
 
 
@@ -516,7 +519,7 @@ module CefLifeCycle
 
   @getCefBrowserProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
       puts "In getting browser process handler...boooya!!"
-      self.cefBrowserProcessHandler
+      @nonGC[:browserProcessHandler]
     end
 
   @getCefRenderProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
