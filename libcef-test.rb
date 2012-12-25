@@ -90,7 +90,7 @@ module CefLifeCycle
   
   @getReferenceCount = FFI::Function.new(:int, [:pointer]) do |me|
     puts "Reference count is hardcoded..."
-    1
+    2
   end
 
   def self.cefBase
@@ -253,43 +253,6 @@ module CefLifeCycle
           :on_render_process_thread_created, :pointer
   end
 
-  @getProxyForUrl = FFI::Function.new(:void, [:pointer]) do |me, url, proxy_info|
-      # TODO: Create _cef_proxy_info_t
-      puts "Getting URL";
-    end
-  def self.cefProxyHandler
-    handler = CefLifeCycle::CefProxyHandler.new
-    handler[:base] = self.cefBase
-    handler[:get_proxy_for_url] = @getProxyForUrl
-    handler
-  end
-
-  @getCefProxyHandler = FFI::Function.new(:pointer, [:pointer]) do |me|
-      puts "Getting proxy handler"
-      self.cefProxyHandler
-    end
-
-  @onContextInitialised = FFI::Function.new(:void, [:pointer]) do |me|
-      puts "Initialised context"
-    end
-  @onBeforeChildProcessLaunch = FFI::Function.new(:void, [:pointer, :pointer]) do |me, command_line|
-      puts "Before launching child process"
-    end
-  @onRenderProcessThreadCreated = FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
-      # TODO: Create _cef_list_value_t type
-      puts "On creating render process"
-    end
-
-  def self.cefBrowserProcessHandler
-    handler = CefLifeCycle::CefBrowserProcessHandler.new
-    handler[:base] = self.cefBase
-    handler[:get_proxy_handler] = @getCefProxyHandler
-    handler[:on_context_initialized] = @onContextInitialised
-    handler[:on_before_child_process_launch] = @onBeforeChildProcessLaunch
-    handler[:on_render_process_thread_created] = @onRenderProcessThreadCreated
-    handler
-  end
-
   class CefRenderProcessHandler < FFI::Struct
     layout :base, CefBase,
           :on_render_thread_created, :pointer,
@@ -304,120 +267,11 @@ module CefLifeCycle
           :on_process_message_received, :pointer
   end
 
-
-  @onRenderThreadCreated =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
-      puts "In before command line processing...boooya!!"
-    end
-  @onWebKitInitialised =     FFI::Function.new(:void, [:pointer]) do |me|
-      puts "In before command line processing...boooya!!"
-    end
-  @onBrowserCreated =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, browser|
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onBrowserDestroyed =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, browser|
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onBeforeNavigation =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer, :uint8, :int]) do |me, browser, frame, request, navigation_type, is_redirect|
-      # TODO: Declare _cef_request_t
-      # The uint8 is a NavigationType
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onContextCreated =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context|
-      # TODO: Declare _cef_v8context_t
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onContextReleased =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context|
-      # TODO: Declare _cef_v8context_t
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onUncaughtException =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context, v8_exception, v8_stacktrace|
-      # TODO: Declare _cef_v8exception_t
-      # TODO: Declare _cef_v8stack_trace_t
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onFocusedNodeChanged =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, dom_node|
-      # TODO: Declare _cef_domnode_t
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onProcessMessageReceived =       FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
-      # TODO: Implement _cef_process_message_t
-      # TODO: Look at cef_process_id_t
-      puts "Received a message..."
-      42
-    end
-
-  def self.cefRenderProcessHandler
-    handler = CefLifeCycle::CefRenderProcessHandler.new
-    handler[:base] = self.cefBase
-    handler[:on_render_thread_created] = @onRenderThreadCreated
-    handler[:on_web_kit_initialized] = @onWebKitInitialised
-    handler[:on_browser_created] = @onBrowserCreated
-    handler[:on_browser_destroyed] = @onBrowserDestroyed
-    handler[:on_before_navigation] = @onBeforeNavigation
-    handler[:on_context_created] = @onContextCreated
-    handler[:on_context_released] = @onContextReleased
-    handler[:on_uncaught_exception] = @onUncaughtException
-    handler[:on_focused_node_changed] = @onFocusedNodeChanged
-    handler[:on_process_message_received] = @onProcessMessageReceived
-
-    handler
-  end
-
   callback :add_custom_scheme_signature, [:pointer, :pointer, :int, :int, :int], :int
-
 
   class CefSchemeRegistrar < FFI::Struct
     layout :base, CefBase,
           :add_custom_scheme, :add_custom_scheme_signature
-  end
-
-  @onBeforeCommandLineProcessing =     FFI::Function.new(:void, [:pointer, :pointer, :pointer]) do |me, process_type, command_line|
-      puts "In before command line processing...boooya!!"
-    end
-
-  @onRegisterCustomSchemes =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, registrar|
-      puts "Registering schemes like it's 1857..." + registrar.address.to_s + "[" + registrar.to_s + "]"
-      registrar = CefBase.new(registrar)
-      puts "Translated it to " + registrar.to_s
-      base = registrar[:release]
-      puts "Resolved release to: " + base.to_s
-      base.call(registrar)
-    end
-
-  @getCefResourceBundleHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
-      puts "In getting resource bundler...boooya!!"
-      handler = CefResourceBundleHandler.new
-      handler[:base] = self.cefBase
-      handler
-    end
-
-  @getCefBrowserProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
-      puts "In getting browser process handler...boooya!!"
-      self.cefBrowserProcessHandler
-    end
-
-  @getCefRenderProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
-      puts "In getting render process handler...boooya!!"
-      self.cefRenderProcessHandler
-    end
-
-  def self.cefApp
-    app = CefApp.new
-    app[:base] = self.cefBase
-
-    app[:on_before_command_line_processing] = @onBeforeCommandLineProcessing
-    app[:on_register_custom_schemes] = @onRegisterCustomSchemes
-    app[:get_resource_bundle_handler] = @getCefResourceBundleHandler
-    app[:get_browser_process_handler] = @getCefBrowserProcessHandler
-    app[:get_render_process_handler] = @getCefRenderProcessHandler
-    app
   end
 
   class CefContextMenuHandler < FFI::Struct
@@ -534,6 +388,154 @@ module CefLifeCycle
           :_cef_request_handler_t, :pointer,
           :on_process_message_received, :pointer
   end
+
+  @getProxyForUrl = FFI::Function.new(:void, [:pointer]) do |me, url, proxy_info|
+      # TODO: Create _cef_proxy_info_t
+      puts "Getting URL";
+    end
+  def self.cefProxyHandler
+    handler = CefLifeCycle::CefProxyHandler.new
+    handler[:base] = self.cefBase
+    handler[:get_proxy_for_url] = @getProxyForUrl
+    handler
+  end
+
+  @getCefProxyHandler = FFI::Function.new(:pointer, [:pointer]) do |me|
+      puts "Getting proxy handler"
+      self.cefProxyHandler
+    end
+
+  @onContextInitialised = FFI::Function.new(:void, [:pointer]) do |me|
+      puts "Initialised context"
+    end
+  @onBeforeChildProcessLaunch = FFI::Function.new(:void, [:pointer, :pointer]) do |me, command_line|
+      puts "Before launching child process"
+    end
+  @onRenderProcessThreadCreated = FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
+      # TODO: Create _cef_list_value_t type
+      puts "On creating render process"
+    end
+
+  def self.cefBrowserProcessHandler
+    handler = CefLifeCycle::CefBrowserProcessHandler.new
+    handler[:base] = self.cefBase
+    handler[:get_proxy_handler] = @getCefProxyHandler
+    handler[:on_context_initialized] = @onContextInitialised
+    handler[:on_before_child_process_launch] = @onBeforeChildProcessLaunch
+    handler[:on_render_process_thread_created] = @onRenderProcessThreadCreated
+    puts "Created new BrowserHandler: " + handler.to_s
+    handler
+  end
+
+
+
+  @onRenderThreadCreated =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
+      puts "In before command line processing...boooya!!"
+    end
+  @onWebKitInitialised =     FFI::Function.new(:void, [:pointer]) do |me|
+      puts "In before command line processing...boooya!!"
+    end
+  @onBrowserCreated =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, browser|
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onBrowserDestroyed =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, browser|
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onBeforeNavigation =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer, :uint8, :int]) do |me, browser, frame, request, navigation_type, is_redirect|
+      # TODO: Declare _cef_request_t
+      # The uint8 is a NavigationType
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onContextCreated =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context|
+      # TODO: Declare _cef_v8context_t
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onContextReleased =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context|
+      # TODO: Declare _cef_v8context_t
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onUncaughtException =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, v8_context, v8_exception, v8_stacktrace|
+      # TODO: Declare _cef_v8exception_t
+      # TODO: Declare _cef_v8stack_trace_t
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onFocusedNodeChanged =     FFI::Function.new(:void, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, dom_node|
+      # TODO: Declare _cef_domnode_t
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onProcessMessageReceived =       FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
+      # TODO: Implement _cef_process_message_t
+      # TODO: Look at cef_process_id_t
+      puts "Received a message..."
+      42
+    end
+
+  def self.cefRenderProcessHandler
+    handler = CefLifeCycle::CefRenderProcessHandler.new
+    handler[:base] = self.cefBase
+    handler[:on_render_thread_created] = @onRenderThreadCreated
+    handler[:on_web_kit_initialized] = @onWebKitInitialised
+    handler[:on_browser_created] = @onBrowserCreated
+    handler[:on_browser_destroyed] = @onBrowserDestroyed
+    handler[:on_before_navigation] = @onBeforeNavigation
+    handler[:on_context_created] = @onContextCreated
+    handler[:on_context_released] = @onContextReleased
+    handler[:on_uncaught_exception] = @onUncaughtException
+    handler[:on_focused_node_changed] = @onFocusedNodeChanged
+    handler[:on_process_message_received] = @onProcessMessageReceived
+
+    handler
+  end
+
+  @onBeforeCommandLineProcessing =     FFI::Function.new(:void, [:pointer, :pointer, :pointer]) do |me, process_type, command_line|
+      puts "In before command line processing...boooya!!"
+    end
+
+  @onRegisterCustomSchemes =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, registrar|
+      puts "Registering schemes like it's 1857..." + registrar.address.to_s + "[" + registrar.to_s + "]"
+      registrar = CefBase.new(registrar)
+      puts "Translated it to " + registrar.to_s
+      base = registrar[:release]
+      puts "Resolved release to: " + base.to_s
+      base.call(registrar)
+    end
+
+  @getCefResourceBundleHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
+      puts "In getting resource bundler...boooya!!"
+      handler = CefResourceBundleHandler.new
+      handler[:base] = self.cefBase
+      handler
+    end
+
+  @getCefBrowserProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
+      puts "In getting browser process handler...boooya!!"
+      self.cefBrowserProcessHandler
+    end
+
+  @getCefRenderProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
+      puts "In getting render process handler...boooya!!"
+      self.cefRenderProcessHandler
+    end
+
+  def self.cefApp
+    app = CefApp.new
+    app[:base] = self.cefBase
+
+    app[:on_before_command_line_processing] = @onBeforeCommandLineProcessing
+    app[:on_register_custom_schemes] = @onRegisterCustomSchemes
+    app[:get_resource_bundle_handler] = @getCefResourceBundleHandler
+    app[:get_browser_process_handler] = @getCefBrowserProcessHandler
+    app[:get_render_process_handler] = @getCefRenderProcessHandler
+    app
+  end
+
 
   def self.cefClient
     client = CefLifeCycle::CefClient.new
@@ -665,7 +667,7 @@ def cefSettings
     settings = CefLifeCycle::CefSettings.new
     settings[:size] = 1000
 
-    settings[:single_process] = false
+    settings[:single_process] = true
     # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
