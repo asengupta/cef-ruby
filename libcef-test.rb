@@ -71,11 +71,13 @@ module CefLifeCycle
   :LOGSEVERITY_ERROR_REPORT,
   :LOGSEVERITY_DISABLE, 99];
 
+  callback :int_pointer, [:pointer], :int
+
   class CefBase < FFI::Struct
     layout :size, :size_t,
-            :add_ref, :pointer,
-            :release, :pointer,
-            :get_refct, :pointer;
+            :add_ref, :int_pointer,
+            :release, :int_pointer,
+            :get_refct, :int_pointer;
   end
 
   @addReference = FFI::Function.new(:int, [:pointer]) do |me|
@@ -88,7 +90,7 @@ module CefLifeCycle
   
   @getReferenceCount = FFI::Function.new(:int, [:pointer]) do |me|
     puts "Reference count is hardcoded..."
-    3
+    1
   end
 
   def self.cefBase
@@ -368,13 +370,27 @@ module CefLifeCycle
     handler
   end
 
+  class CefSchemeRegistrar < FFI::Struct
+    layout :base, CefBase.ptr,
+          :add_custom_scheme, :pointer
+  end
 
   @onBeforeCommandLineProcessing =     FFI::Function.new(:void, [:pointer, :pointer, :pointer]) do |me, process_type, command_line|
       puts "In before command line processing...boooya!!"
     end
 
   @onRegisterCustomSchemes =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, registrar|
-      puts "In registering custom schemes...boooya!!"
+      puts "Registering schemes like it's 1857..." + registrar.address.to_s + "[" + registrar.to_s + "]"
+      if registrar.address != 0
+        registrar = CefSchemeRegistrar.new(registrar)
+        puts "Translated it to " + registrar.to_s
+        # base = CefBase.new(registrar[:base])
+      end
+      # release = FFI::Function.new(:void, [], registrar[:base][:release])
+      # registrar[:base][:release]
+      # puts "Base is..." + base.to_s
+      # end
+      # release.call
     end
 
   @getCefResourceBundleHandler =     FFI::Function.new(:void, [:pointer]) do |me|
@@ -726,4 +742,4 @@ end
 
 
 
-run(["Soething"]);
+# run(["Soething"]);
