@@ -517,8 +517,9 @@ module CefLifeCycle
       handler
     end
 
-  @getCefBrowserProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
+  @getCefBrowserProcessHandler =     FFI::Function.new(CefBrowserProcessHandler.ptr, [:pointer]) do |me|
       puts "In getting browser process handler...boooya!!"
+      puts @nonGC[:browserProcessHandler].pointer.to_s 
       @nonGC[:browserProcessHandler]
     end
 
