@@ -428,7 +428,26 @@ module CefLifeCycle
     puts "Created new BrowserHandler: " + handler.to_s
     handler
   end
+
+  def self.cefRenderProcessHandler
+    handler = CefLifeCycle::CefRenderProcessHandler.new
+    handler[:base] = self.cefBase
+    handler[:on_render_thread_created] = @onRenderThreadCreated
+    handler[:on_web_kit_initialized] = @onWebKitInitialised
+    handler[:on_browser_created] = @onBrowserCreated
+    handler[:on_browser_destroyed] = @onBrowserDestroyed
+    handler[:on_before_navigation] = @onBeforeNavigation
+    handler[:on_context_created] = @onContextCreated
+    handler[:on_context_released] = @onContextReleased
+    handler[:on_uncaught_exception] = @onUncaughtException
+    handler[:on_focused_node_changed] = @onFocusedNodeChanged
+    handler[:on_process_message_received] = @onProcessMessageReceived
+
+    handler
+  end
+
   @nonGC[:browserProcessHandler] = self.cefBrowserProcessHandler
+  @nonGC[:renderProcessHandler] = self.cefRenderProcessHandler
 
 
 
@@ -480,23 +499,6 @@ module CefLifeCycle
       42
     end
 
-  def self.cefRenderProcessHandler
-    handler = CefLifeCycle::CefRenderProcessHandler.new
-    handler[:base] = self.cefBase
-    handler[:on_render_thread_created] = @onRenderThreadCreated
-    handler[:on_web_kit_initialized] = @onWebKitInitialised
-    handler[:on_browser_created] = @onBrowserCreated
-    handler[:on_browser_destroyed] = @onBrowserDestroyed
-    handler[:on_before_navigation] = @onBeforeNavigation
-    handler[:on_context_created] = @onContextCreated
-    handler[:on_context_released] = @onContextReleased
-    handler[:on_uncaught_exception] = @onUncaughtException
-    handler[:on_focused_node_changed] = @onFocusedNodeChanged
-    handler[:on_process_message_received] = @onProcessMessageReceived
-
-    handler
-  end
-
   @onBeforeCommandLineProcessing =     FFI::Function.new(:void, [:pointer, :pointer, :pointer]) do |me, process_type, command_line|
       puts "In before command line processing...boooya!!"
     end
@@ -525,7 +527,7 @@ module CefLifeCycle
 
   @getCefRenderProcessHandler =     FFI::Function.new(:pointer, [:pointer]) do |me|
       puts "In getting render process handler...boooya!!"
-      self.cefRenderProcessHandler
+      @nonGC[:renderProcessHandler]
     end
 
   def self.cefApp
