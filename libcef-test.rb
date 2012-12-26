@@ -692,7 +692,7 @@ def cefSettings
     settings = CefLifeCycle::CefSettings.new
     settings[:size] = 1000
 
-    settings[:single_process] = false
+    settings[:single_process] = true
     # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
@@ -751,14 +751,14 @@ def browserSettings
   browser_settings[:user_style_sheet_enabled] = false
   browser_settings[:user_style_sheet_location] = CefLifeCycle.cefString(".")
   browser_settings[:author_and_user_styles_disabled] = true
-  browser_settings[:local_storage_disabled] = false
-  browser_settings[:databases_disabled] = false
+  browser_settings[:local_storage_disabled] = true
+  browser_settings[:databases_disabled] = true
   browser_settings[:application_cache_disabled] = false
-  browser_settings[:webgl_disabled] = false
-  browser_settings[:accelerated_compositing_disabled] = false
-  browser_settings[:accelerated_layers_disabled] = false
-  browser_settings[:accelerated_video_disabled] = false
-  browser_settings[:accelerated_2d_canvas_disabled] = false
+  browser_settings[:webgl_disabled] = true
+  browser_settings[:accelerated_compositing_disabled] = true
+  browser_settings[:accelerated_layers_disabled] = true
+  browser_settings[:accelerated_video_disabled] = true
+  browser_settings[:accelerated_2d_canvas_disabled] = true
   browser_settings[:accelerated_plugins_disabled] = true
   browser_settings[:developer_tools_disabled] = true
 
