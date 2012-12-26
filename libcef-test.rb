@@ -654,6 +654,7 @@ def run(command_line_args)
     mainArgs[:argc] = command_line_args.length;
     mainArgs[:argv] = argv;
 
+    settings = cefSettings();
     app = CefLifeCycle.cefApp;
     puts "About to execute..."
     exitCode = CefLifeCycle.cef_execute_process(mainArgs, app);
@@ -661,6 +662,7 @@ def run(command_line_args)
     return exitCode if exitCode >= 0
 
     Gtk.gtk_init(0, nil);
+    result = CefLifeCycle.cef_initialize(mainArgs, settings, app);
     top = Gtk.gtk_window_new(:GTK_WINDOW_TOPLEVEL);
     vbox = Gtk.gtk_vbox_new(false, 0);
     window_info = CefLifeCycle::WindowInfo.new;
@@ -668,19 +670,17 @@ def run(command_line_args)
     window_info[:parent_widget] = vbox;
 
 
-    settings = cefSettings();
     browser_settings = browserSettings();
     url = "http://google.com";
 
     client = CefLifeCycle.cefClient;
-    result = CefLifeCycle.cef_initialize(mainArgs, settings, app);
 
-    Gtk.gtk_container_add(top, vbox);
-    Gtk.gtk_widget_show(top);
     puts("CEF Initialisation: " + result.to_s);
     worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
-    Gtk.gtk_main();
+    Gtk.gtk_container_add(top, vbox);
+    Gtk.gtk_widget_show(top);
     puts("Browser address=" + worked.to_s);
+    Gtk.gtk_main();
     CefLifeCycle.cef_run_message_loop();
     CefLifeCycle.cef_shutdown();
 end
@@ -692,7 +692,7 @@ def cefSettings
     settings = CefLifeCycle::CefSettings.new
     settings[:size] = 1000
 
-    settings[:single_process] = true
+    settings[:single_process] = false
     # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
