@@ -1,4 +1,5 @@
 break IPC::SyncChannel::SendWithTimeout
+disable
 break CefBrowserMessageFilter::OnGetNewRenderThreadInfo
 disable
 break IPC::ChannelProxy::Send
@@ -12,6 +13,7 @@ disable
 break IPC::ChannelProxy::Context::OnChannelOpened
 disable
 break base::MessagePumpLibevent::OnLibeventNotification
+disable
 break base::MessagePumpLibevent::DidProcessIOEvent
 disable
 break base::MessagePumpLibevent::WillProcessIOEvent
@@ -27,4 +29,17 @@ disable
 break event.c:385
 disable
 break CefRenderProcessObserver::OnControlMessageReceived
+disable
 break CefRenderProcessObserver::WebKitInitialized
+disable
+break CefLifeSpanHandler::OnAfterCreated
+disable
+break UnixDomainSocket::SendMsg
+disable
+break UnixDomainSocket::SendMsg
+disable
+break UnixDomainSocket::RecvMsg
+disable
+break UnixDomainSocket::SendRecvMsg
+disable
+break url_request_context_getter.cc:176

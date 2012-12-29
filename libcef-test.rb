@@ -84,15 +84,17 @@ module CefLifeCycle
             :get_refct, :int_pointer;
   end
 
-  @addReference = FFI::Function.new(:int, [:pointer]) do |me|
-    # puts "Adding a reference..."
+  @addReference = FFI::Function.new(:int, [CefBase.ptr]) do |me|
+    puts "Adding a reference..."
+    1
   end
 
-  @releaseReference = FFI::Function.new(:int, [:pointer]) do |me|
+  @releaseReference = FFI::Function.new(:int, [CefBase.ptr]) do |me|
     # puts "Removing a reference..."
+    1
   end
   
-  @getReferenceCount = FFI::Function.new(:int, [:pointer]) do |me|
+  @getReferenceCount = FFI::Function.new(:int, [CefBase.ptr]) do |me|
     # puts "Reference count is hardcoded..."
     2
   end
