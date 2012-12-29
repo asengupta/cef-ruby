@@ -443,7 +443,7 @@ module CefLifeCycle
     handler[:on_context_released] = @onContextReleased
     handler[:on_uncaught_exception] = @onUncaughtException
     handler[:on_focused_node_changed] = @onFocusedNodeChanged
-    handler[:on_process_message_received] = @onProcessMessageReceived
+    handler[:on_process_message_received] = @onRenderProcessHandlerProcessMessageReceived
 
     handler
   end
@@ -494,11 +494,19 @@ module CefLifeCycle
       puts "On focused node changed...boooya!!"
     end
 
-  @onProcessMessageReceived =       FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
+  @onRenderProcessHandlerProcessMessageReceived = 
+  FFI::Function.new(:int, [CefRenderProcessHandler.ptr, :pointer, :uint8, :pointer]) do |me, browser, source_process, message|
       # TODO: Implement _cef_process_message_t
       # TODO: Look at cef_process_id_t
       puts "Received a message..."
-      42
+      true
+    end
+
+  @onCefClientProcessMessageReceived =       FFI::Function.new(:int, [CefClient.ptr, :pointer, :uint8, :pointer]) do |me, browser, source_process, message|
+      # TODO: Implement _cef_process_message_t
+      # TODO: Look at cef_process_id_t
+      puts "Received a message..."
+      true
     end
 
   @onBeforeCommandLineProcessing =     FFI::Function.new(:void, [:pointer, :pointer, :pointer]) do |me, process_type, command_line|
@@ -544,9 +552,39 @@ module CefLifeCycle
     app
   end
 
+  @onBeforePopup = 
+  FFI::Function.new(:int, [CefLifeSpanHandler.ptr, :pointer, :pointer, WindowInfo.ptr, :pointer, BrowserSettings.ptr]) do |me, browser, popupFeatures, windowInfo, client, browserSettings|
+    puts "In before on popup..."
+    1
+  end
+
+  @onAfterCreated = FFI::Function.new(:void, [CefLifeSpanHandler.ptr, :pointer]) do |me, browser|
+    puts "On after created..."
+  end
+
+  @runModal = FFI::Function.new(:int, [CefLifeSpanHandler.ptr, :pointer]) do |me, browser|
+    puts "In running modal..."
+    1
+  end
+
+  @doClose = FFI::Function.new(:int, [CefLifeSpanHandler.ptr, :pointer]) do |me, broswer|
+    puts "In do close..."
+    1
+  end
+
+  @onBeforeClose = FFI::Function.new(:void, [CefLifeSpanHandler.ptr, :pointer]) do |me, browser|
+    puts "In before close..."
+  end
+
   def self.cefLifespanHandler
       handler = CefLifeSpanHandler.new
       handler[:base] = self.cefBase
+
+      handler[:on_before_popup] = @onBeforePopup
+      handler[:on_after_created] = @onAfterCreated
+      handler[:run_modal] = @runModal
+      handler[:do_close] = @doClose
+      handler[:on_before_close] = @onBeforeClose
       handler
   end
 
@@ -626,13 +664,13 @@ module CefLifeCycle
       puts "Getting lifespan handler..."
       @nonGC[:lifespanHandler]
     end
-    client[:on_process_message_received] = 
-      FFI::Function.new(:int, [:pointer, :pointer, :int, :pointer]) do |browser, source_process, message|
-      # TODO: Implement _cef_process_message_t
-      # TODO: Look at cef_process_id_t
-      puts "Received a message..."
-      42
-    end
+    client[:on_process_message_received] = @onCefClientProcessMessageReceived
+    #   FFI::Function.new(:int, [:pointer, :pointer, :uint8, :pointer]) do |me, browser, source_process, message|
+    #   # TODO: Implement _cef_process_message_t
+    #   # TODO: Look at cef_process_id_t
+    #   puts "Received a message..."
+    #   true
+    # end
     client
   end
 end
@@ -677,11 +715,12 @@ def run(command_line_args)
 
     puts("CEF Initialisation: " + result.to_s);
     worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
+    CefLifeCycle.cef_run_message_loop();
     Gtk.gtk_container_add(top, vbox);
     Gtk.gtk_widget_show(top);
     puts("Browser address=" + worked.to_s);
     Gtk.gtk_main();
-    CefLifeCycle.cef_run_message_loop();
+    # CefLifeCycle.cef_do_message_loop_work();
     CefLifeCycle.cef_shutdown();
 end
 

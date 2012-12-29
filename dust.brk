@@ -1,0 +1,9 @@
+break main_delegate.cc:381
+break content_client.cc:21
+break content_main_runner.cc:311
+break GetContentClient()
+break web_contents_impl.cc:838
+watch -location g_client->browser_
+watch g_client->browser_
+break WebContentsImpl::Init
+break content::WebContentsImpl::Init

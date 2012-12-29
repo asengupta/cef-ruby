@@ -1,0 +1,7 @@
+break browser_host_impl.cc:1042
+break navigation_controller_impl.cc:1484
+break WebContentsImpl::NavigateToEntry
+break web_contents.cc:1584
+break web_contents.cc:1568
+break web_contents_impl.cc:838
+break context.cc:181

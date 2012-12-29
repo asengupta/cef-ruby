@@ -1,0 +1,30 @@
+break IPC::SyncChannel::SendWithTimeout
+break CefBrowserMessageFilter::OnGetNewRenderThreadInfo
+disable
+break IPC::ChannelProxy::Send
+disable
+break IPC::ChannelProxy::Context::OnMessageReceived
+disable
+break IPC::ChannelProxy::Context::OnChannelError
+disable
+break IPC::ChannelProxy::Context::OnChannelOpened
+disable
+break IPC::ChannelProxy::Context::OnChannelOpened
+disable
+break base::MessagePumpLibevent::OnLibeventNotification
+break base::MessagePumpLibevent::DidProcessIOEvent
+disable
+break base::MessagePumpLibevent::WillProcessIOEvent
+disable
+break render_sandbox_host_linux.cc:132
+disable
+break base::MessagePumpLibevent::OnWakeup
+disable
+break base::MessagePumpLibevent::WatchFileDescriptor
+disable
+break message_pump_libevent.cc:380
+disable
+break event.c:385
+disable
+break CefRenderProcessObserver::OnControlMessageReceived
+break CefRenderProcessObserver::WebKitInitialized

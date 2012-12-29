@@ -1,0 +1,11 @@
+break IPC::SyncChannel::SendWithTimeout
+break CefBrowserMessageFilter::OnGetNewRenderThreadInfo
+break IPC::ChannelProxy::Send
+break ChannelProxy::Context::OnMessageReceived
+break IPC::ChannelProxy::Context::OnMessageReceived
+break IPC::ChannelProxy::Context::OnChannelError
+break IPC::ChannelProxy::Context::OnChannelOpened
+break IPC::ChannelProxy::Context::OnChannelOpened
+break base::MessagePumpLibevent::OnLibeventNotification
+break base::MessagePumpLibevent::DidProcessIOEvent
+break base::MessagePumpLibevent::WillProcessIOEvent
