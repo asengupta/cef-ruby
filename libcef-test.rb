@@ -85,7 +85,7 @@ module CefLifeCycle
   end
 
   @addReference = FFI::Function.new(:int, [:pointer]) do |me|
-    puts "Adding a reference..."
+    # puts "Adding a reference..."
     1
   end
 
@@ -102,9 +102,9 @@ module CefLifeCycle
   def self.cefBase
     base = CefBase.new
     base[:size] = 1000 # That ought to satisfy them
-    # base[:add_ref] = @addReference
-    # base[:release] = @releaseReference
-    # base[:get_refct] = @getReferenceCount
+    base[:add_ref] = @addReference
+    base[:release] = @releaseReference
+    base[:get_refct] = @getReferenceCount
     base
   end
 
@@ -717,9 +717,9 @@ def run(command_line_args)
 
     puts("CEF Initialisation: " + result.to_s);
     worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
-    CefLifeCycle.cef_run_message_loop();
     Gtk.gtk_container_add(top, vbox);
     Gtk.gtk_widget_show(top);
+    CefLifeCycle.cef_run_message_loop();
     puts("Browser address=" + worked.to_s);
     Gtk.gtk_main();
     # CefLifeCycle.cef_do_message_loop_work();
@@ -733,7 +733,7 @@ def cefSettings
     settings = CefLifeCycle::CefSettings.new
     settings[:size] = 1000
 
-    settings[:single_process] = true
+    settings[:single_process] = false
     # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
