@@ -49,14 +49,14 @@ module CefLifeCycle
   @nonGC = {}
 
   ffi_lib [FFI::CURRENT_PROCESS, "/home/avishek/Code/chromium-tar/home/src_tarball/tarball/chromium/src/cef/binary_distrib/cef_binary_3.1339.959_linux/Debug/lib.target/libcef.so"];
-  attach_function(:cef_do_message_loop_work, [], :void);
-  attach_function(:cef_browser_host_create_browser_sync, [:pointer, :pointer, :pointer, :pointer], :pointer);
-  attach_function(:cef_browser_host_create_browser, [:pointer, :pointer, :pointer, :pointer], :pointer);
-  attach_function(:cef_initialize, [:pointer, :pointer, :pointer], :int);
-  attach_function(:cef_string_ascii_to_utf16, [:string, :size_t, :pointer], :int);
-  attach_function(:cef_run_message_loop, [], :void);
-  attach_function(:cef_shutdown, [], :void);
-  attach_function(:cef_execute_process, [:pointer, :pointer], :int);
+  attach_function(:cef_do_message_loop_work, [], :void, :blocking => true);
+  attach_function(:cef_browser_host_create_browser_sync, [:pointer, :pointer, :pointer, :pointer], :pointer, :blocking => true);
+  attach_function(:cef_browser_host_create_browser, [:pointer, :pointer, :pointer, :pointer], :pointer, :blocking => true);
+  attach_function(:cef_initialize, [:pointer, :pointer, :pointer], :int, :blocking => true);
+  attach_function(:cef_string_ascii_to_utf16, [:string, :size_t, :pointer], :int, :blocking => true);
+  attach_function(:cef_run_message_loop, [], :void, :blocking => true, :blocking => true);
+  attach_function(:cef_shutdown, [], :void, :blocking => true);
+  attach_function(:cef_execute_process, [:pointer, :pointer], :int, :blocking => true);
 
   NavigationType = enum(:NAVIGATION_LINK_CLICKED, 0,
     :NAVIGATION_FORM_SUBMITTED,
@@ -84,7 +84,7 @@ module CefLifeCycle
             :get_refct, :int_pointer;
   end
 
-  @addReference = FFI::Function.new(:int, [CefBase.ptr]) do |me|
+  @addReference = FFI::Function.new(:int, [:pointer]) do |me|
     puts "Adding a reference..."
     1
   end
@@ -102,9 +102,9 @@ module CefLifeCycle
   def self.cefBase
     base = CefBase.new
     base[:size] = 1000 # That ought to satisfy them
-    base[:add_ref] = @addReference
-    base[:release] = @releaseReference
-    base[:get_refct] = @getReferenceCount
+    # base[:add_ref] = @addReference
+    # base[:release] = @releaseReference
+    # base[:get_refct] = @getReferenceCount
     base
   end
 

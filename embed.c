@@ -1,5 +1,24 @@
 #include "ruby.h"
 #include <stdio.h>
+
+int add_ref(void* base)
+{
+  printf("[C] Adding a reference");
+  return 1;
+}
+
+int release(void* base)
+{
+  printf("[C] Releasing a reference");
+  return 1;
+}
+
+int get_refct(void* base)
+{
+  printf("[C] Returning reference count");
+  return 1;
+}
+
 int main(int argc, char *argv[])
 {
   int i;
