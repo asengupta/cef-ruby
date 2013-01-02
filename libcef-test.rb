@@ -34,14 +34,14 @@ module Gtk
     :PID_RENDERER
   ];
 
-  attach_function(:gtk_window_new, [:GtkWindowType], :pointer);
-  attach_function(:gtk_drawing_area_new, [], :pointer);
-  attach_function(:gtk_init, [:int, :pointer], :void);
-  attach_function(:gtk_container_add, [:pointer, :pointer], :void);
-  attach_function(:gtk_widget_show, [:pointer], :void);
-  attach_function(:gtk_widget_show_all, [:pointer], :void);
-  attach_function(:gtk_main, [], :void);
-  attach_function(:gtk_vbox_new, [:bool, :int], :pointer);
+  attach_function(:gtk_window_new, [:GtkWindowType], :pointer, :blocking => true);
+  attach_function(:gtk_drawing_area_new, [], :pointer, :blocking => true);
+  attach_function(:gtk_init, [:int, :pointer], :void, :blocking => true);
+  attach_function(:gtk_container_add, [:pointer, :pointer], :void, :blocking => true);
+  attach_function(:gtk_widget_show, [:pointer], :void, :blocking => true);
+  attach_function(:gtk_widget_show_all, [:pointer], :void, :blocking => true);
+  attach_function(:gtk_main, [], :void, :blocking => true);
+  attach_function(:gtk_vbox_new, [:bool, :int], :pointer, :blocking => true);
 end
 
 module CefLifeCycle
@@ -406,9 +406,11 @@ module CefLifeCycle
     handler
   end
 
+  @nonGC[:proxyHandler] = self.cefProxyHandler
+
   @getCefProxyHandler = FFI::Function.new(:pointer, [:pointer]) do |me|
       puts "Getting proxy handler"
-      self.cefProxyHandler
+      @nonGC[:proxyHandler]
     end
 
   @onContextInitialised = FFI::Function.new(:void, [:pointer]) do |me|
@@ -450,9 +452,53 @@ module CefLifeCycle
     handler
   end
 
+  @onLoadingStateChange = 
+  FFI::Function.new(:void, [CefDisplayHandler.ptr, :pointer, :int, :int, :int]) do |me, browser, isLoading, canGoBack, canGoForward|
+    puts "On loading state change..."
+  end
+
+  @onAddressStateChange = 
+  FFI::Function.new(:void, [CefDisplayHandler.ptr, :pointer, :pointer, CefString.ptr]) do |me, browser, frame, url|
+    puts "On address change..."
+  end
+
+  @onTitleChange = 
+  FFI::Function.new(:void, [CefDisplayHandler.ptr, :pointer, CefString.ptr]) do |me, browser, title|
+    puts "On title change..."
+  end
+
+  @onTooltip = 
+  FFI::Function.new(:int, [CefDisplayHandler.ptr, :pointer, CefString.ptr]) do |me, browser, text|
+    puts "On tooltip..."
+    1
+  end
+
+  @onStatusMessage = 
+  FFI::Function.new(:void, [CefDisplayHandler.ptr, :pointer, CefString.ptr]) do |me, browser, value|
+    puts "On status message..."
+  end
+
+  @onConsoleMessage = 
+  FFI::Function.new(:int, [CefDisplayHandler.ptr, :pointer, CefString.ptr, CefString.ptr, :int]) do |me, browser, message, source, line|
+    puts "On console message..."
+    0
+  end
+
+  def self.cefDisplayHandler
+    handler = CefDisplayHandler.new
+    handler[:base] = self.cefBase
+    handler[:on_loading_state_change] = @onLoadingStateChange
+    handler[:on_address_change] = @onAddressStateChange
+    handler[:on_title_change] = @onTitleChange
+    handler[:on_tooltip] = @onTooltip
+    handler[:on_status_message] = @onStatusMessage
+    handler[:on_console_message] = @onConsoleMessage
+    handler
+  end
+
+  @nonGC[:displayHandler] = self.cefDisplayHandler
   @nonGC[:browserProcessHandler] = self.cefBrowserProcessHandler
   @nonGC[:renderProcessHandler] = self.cefRenderProcessHandler
-  @nonGC[:proxyHandler] = self.cefProxyHandler
 
 
   @onRenderThreadCreated =     FFI::Function.new(:void, [:pointer, :pointer]) do |me, extra_info|
@@ -593,48 +639,57 @@ module CefLifeCycle
   @nonGC[:lifespanHandler] = self.cefLifespanHandler
 
     @onBeforeResourceLoad = 
-    FFI::Function.new(:int, [CefRequestHandler.ptr, :pointer, :pointer, :pointer]) do |me, browser, frame, request|
-      return 0
+    FFI::Function.new(:bool, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, request|
+      puts "In before resource load..."
+      return false
       # TODO: Set up _cef_request_handler_t, _cef_browser_t, _cef_frame_t, _cef_request_t
     end
     @getResourceHandler = 
     FFI::Function.new(:pointer, [CefRequestHandler.ptr, :pointer, :pointer, :pointer]) do |me, browser, frame, request|
+      puts "Getting resource handler..."
       return nil;
       # TODO: Set up _cef_request_handler_t, _cef_browser_t, _cef_frame_t, _cef_request_t, _cef_resource_handler_t
     end
 
     @onResourceRedirect = 
     FFI::Function.new(:void, [CefRequestHandler.ptr, :pointer, :pointer, CefString.ptr, CefString.ptr]) do |me, browser, frame, oldUrl, newUrl|
+      puts "On resource redirect..."
       return nil;
     end
 
     @getAuthCredentials = 
     FFI::Function.new(:int, [CefRequestHandler.ptr, :pointer, :pointer, :int, CefString.ptr, :int, CefString.ptr, CefString.ptr, :pointer]) do |me, browser, frame, isProxy, host, port, realm, scheme, authCallback|
+      puts "Getting auth credentials..."
       return 1;
     end
 
     @onQuotaRequest = 
     FFI::Function.new(:int, [CefRequestHandler.ptr, :pointer, CefString.ptr, :int64, :pointer]) do |me, browser, originUrl, newSize, quotaCallback|
+      puts "On quota request..."
       return 1
     end
 
     @getCookieManager = 
     FFI::Function.new(:pointer, [CefRequestHandler.ptr, :pointer, CefString.ptr]) do |me, browser, mainUrl|
+      puts "Getting cookie manager..."
       return nil
     end
 
     @onProtocolExecution = 
     FFI::Function.new(:void, [CefRequestHandler.ptr, :pointer, CefString.ptr, :pointer]) do |me, browser, url, allowOSExecution|
+      puts "On protocol execution..."
     end
 
     @onBeforePluginLoad = 
     FFI::Function.new(:int, [CefRequestHandler.ptr, :pointer, CefString.ptr, CefString.ptr, :pointer]) do |me, browser, url, policyUrl, pluginInfo|
+      puts "On before plugin load..."
       # TODO: Set up _cef_web_plugin_info_t
       return 0
     end
 
     def self.cefRequestHandler
       handler = CefRequestHandler.new
+      handler[:base] = self.cefBase
       handler[:on_before_resource_load] = @onBeforeResourceLoad
       handler[:get_resource_handler] = @getResourceHandler
       handler[:on_resource_redirect] = @onResourceRedirect
@@ -677,8 +732,9 @@ module CefLifeCycle
       handler
     end
 
-    client[:get_request_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
-      puts "Getting request handler..."
+    client[:get_request_handler] = FFI::Function.new(CefRequestHandler.ptr, [:pointer]) do |client|
+      puts "Getting request handler..." + @nonGC[:requestHandler].to_s
+      # self.cefRequestHandler
       @nonGC[:requestHandler]
     end
     client[:get_render_handler] = FFI::Function.new(:pointer, [:pointer]) do |client|
@@ -733,7 +789,7 @@ module CefLifeCycle
 end
 
 def run(command_line_args)
-    puts "Invoked with..." + command_line_args.to_s
+    puts "Invoked with..." + command_line_args.to_s + "\n\n"
 
     mainArgs = CefLifeCycle::MainArgs.new;
 
@@ -788,7 +844,7 @@ def cefSettings
     settings = CefLifeCycle::CefSettings.new
     settings[:size] = 1000
 
-    settings[:single_process] = false
+    settings[:single_process] = true
     # settings[:browser_subprocess_path] = CefLifeCycle.cefString("./embed.out")
     settings[:multi_threaded_message_loop] = false
     settings[:command_line_args_disabled] = false
