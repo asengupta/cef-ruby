@@ -34,14 +34,14 @@ module Gtk
     :PID_RENDERER
   ];
 
-  attach_function(:gtk_window_new, [:GtkWindowType], :pointer, :blocking => true);
-  attach_function(:gtk_drawing_area_new, [], :pointer, :blocking => true);
-  attach_function(:gtk_init, [:int, :pointer], :void, :blocking => true);
-  attach_function(:gtk_container_add, [:pointer, :pointer], :void, :blocking => true);
-  attach_function(:gtk_widget_show, [:pointer], :void, :blocking => true);
-  attach_function(:gtk_widget_show_all, [:pointer], :void, :blocking => true);
-  attach_function(:gtk_main, [], :void, :blocking => true);
-  attach_function(:gtk_vbox_new, [:bool, :int], :pointer, :blocking => true);
+  attach_function(:gtk_window_new, [:GtkWindowType], :pointer);
+  attach_function(:gtk_drawing_area_new, [], :pointer);
+  attach_function(:gtk_init, [:int, :pointer], :void);
+  attach_function(:gtk_container_add, [:pointer, :pointer], :void);
+  attach_function(:gtk_widget_show, [:pointer], :void);
+  attach_function(:gtk_widget_show_all, [:pointer], :void);
+  attach_function(:gtk_main, [], :void);
+  attach_function(:gtk_vbox_new, [:bool, :int], :pointer);
 end
 
 module CefLifeCycle
@@ -54,7 +54,7 @@ module CefLifeCycle
   attach_function(:cef_browser_host_create_browser, [:pointer, :pointer, :pointer, :pointer], :pointer, :blocking => true);
   attach_function(:cef_initialize, [:pointer, :pointer, :pointer], :int, :blocking => true);
   attach_function(:cef_string_ascii_to_utf16, [:string, :size_t, :pointer], :int, :blocking => true);
-  attach_function(:cef_run_message_loop, [], :void, :blocking => true, :blocking => true);
+  attach_function(:cef_run_message_loop, [], :void, :blocking => true);
   attach_function(:cef_shutdown, [], :void, :blocking => true);
   attach_function(:cef_execute_process, [:pointer, :pointer], :int, :blocking => true);
 
@@ -639,10 +639,9 @@ module CefLifeCycle
   @nonGC[:lifespanHandler] = self.cefLifespanHandler
 
     @onBeforeResourceLoad = 
-    FFI::Function.new(:bool, [:pointer, :pointer, :pointer, :pointer]) do |me, browser, frame, request|
+    FFI::Function.new(:bool, [CefRequestHandler.ptr, :pointer, :pointer, :pointer]) do |me, browser, frame, request|
       puts "In before resource load..."
       return false
-      # TODO: Set up _cef_request_handler_t, _cef_browser_t, _cef_frame_t, _cef_request_t
     end
     @getResourceHandler = 
     FFI::Function.new(:pointer, [CefRequestHandler.ptr, :pointer, :pointer, :pointer]) do |me, browser, frame, request|
@@ -828,13 +827,17 @@ def run(command_line_args)
 
     puts("CEF Initialisation: " + result.to_s);
     worked = CefLifeCycle.cef_browser_host_create_browser_sync(window_info, client, CefLifeCycle.cefString(url), browser_settings);
+    # puts "Blahahahahahah"
     Gtk.gtk_container_add(top, vbox);
     Gtk.gtk_widget_show(top);
-    puts("Browser address=" + worked.to_s);
+    puts("Browser address=" + worked.to_s + "*********************************************");
     # Gtk.gtk_main();
+    puts "Blahahaha ****************************************1"
     CefLifeCycle.cef_run_message_loop();
     # CefLifeCycle.cef_do_message_loop_work();
-    CefLifeCycle.cef_shutdown();
+    puts "Blahahaha ****************************************2"
+    # CefLifeCycle.cef_shutdown();
+    puts "Blahahaha ****************************************3"
 end
 
 def cefSettings
